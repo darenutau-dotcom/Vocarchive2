@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Software & Engine Archive</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        
+        body { background-color: #0f172a; color: #f1f5f9; padding: 30px 20px; }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 40px; }
+        header h1 { font-size: 2.2rem; color: #ffffff; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 5px; }
+        header p { color: #94a3b8; font-size: 0.95rem; }
+        
+        .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 35px; }
+        @media (max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
+
+        /* Form */
+        .form-section { background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); height: fit-content; position: sticky; top: 20px; }
+        .form-section h2 { margin-bottom: 20px; font-size: 1.25rem; color: #ffffff; font-weight: 700; border-bottom: 2px solid #334155; padding-bottom: 8px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #475569; border-radius: 6px; font-size: 0.9rem; color: #ffffff; transition: all 0.2s; background-color: #0f172a; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #e11d48; background-color: #0f172a; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25); }
+        .form-group input::placeholder { color: #475569; }
+        
+        .btn-submit { width: 100%; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+        .btn-submit:hover { background: #be123c; }
+        .btn-submit:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+
+        /* Search & Controls */
+        .catalog-section { display: flex; flex-direction: column; gap: 25px; }
+        .search-container { display: flex; gap: 10px; width: 100%; }
+        .search-bar { flex-grow: 1; padding: 14px 24px; border: 1px solid #334155; border-radius: 8px; font-size: 0.95rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background: #1e293b; color: #ffffff; transition: all 0.2s; }
+        .search-bar:focus { outline: none; border-color: #e11d48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25); }
+        .search-bar::placeholder { color: #64748b; }
+        .btn-clear-filter { padding: 0 20px; background: #334155; border: 1px solid #475569; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #f1f5f9; cursor: pointer; display: none; }
+        .btn-clear-filter:hover { background: #475569; }
+        
+        /* Grid Layout */
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
+        .card { background: #1e293b; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-height: 420px; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4); border-color: #475569; }
+        
+        /* Image Cover Box */
+        .card-img-box { width: 100%; aspect-ratio: 4/3; background: #0f172a; overflow: hidden; border-bottom: 1px solid #334155; }
+        .card-img-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Card Content */
+        .card-body { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
+        .software-id { font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 12px; line-height: 1.3; height: 46px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .meta-line { font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; }
+        .meta-line strong { color: #cbd5e1; }
+        
+        /* Tags */
+        .tags-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; margin-bottom: 14px; }
+        .tag { font-size: 0.7rem; font-weight: 700; padding: 4px 8px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; text-transform: uppercase; color: #cbd5e1; cursor: pointer; transition: all 0.15s; }
+        .tag:hover { background: #e11d48; color: white; border-color: #e11d48; }
+        
+        /* License Specific Neon Color Tags */
+        .tag-free { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: #4ade80; }
+        .tag-free:hover { background: #22c55e; color: white; }
+        .tag-paid { background: rgba(225, 29, 72, 0.1); border-color: rgba(225, 29, 72, 0.3); color: #f43f5e; }
+        .tag-paid:hover { background: #e11d48; color: white; }
+        .tag-freemium { background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3); color: #facc15; }
+        .tag-freemium:hover { background: #eab308; color: white; }
+
+        /* Bottom Button */
+        .card-actions { margin-top: auto; border-top: 1px solid #334155; padding-top: 15px; }
+        .btn-view-more { display: block; width: 100%; text-align: center; background: #0f172a; color: white; padding: 11px; text-decoration: none; font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #334155; cursor: pointer; transition: all 0.2s; }
+        .btn-view-more:hover { background: #e11d48; border-color: #e11d48; }
+
+        /* Pagination */
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
+        .page-btn { padding: 10px 16px; border: 1px solid #334155; background: #1e293b; cursor: pointer; border-radius: 6px; font-weight: 600; color: #cbd5e1; transition: all 0.2s; }
+        .page-btn:hover { border-color: #475569; background: #334155; }
+        .page-btn.active { background: #e11d48; color: white; border-color: #e11d48; }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); justify-content: center; align-items: center; z-index: 1000; padding: 20px; backdrop-filter: blur(6px); }
+        .modal-content { background: #1e293b; width: 100%; max-width: 750px; max-height: 85vh; border-radius: 12px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #64748b; transition: color 0.2s; }
+        .close-modal:hover { color: #f1f5f9; }
+        .modal-title { font-size: 1.6rem; margin-bottom: 6px; color: #ffffff; font-weight: 800; }
+        .modal-subtitle { font-size: 0.9rem; color: #94a3b8; margin-bottom: 25px; border-bottom: 2px solid #334155; padding-bottom: 12px; }
+        
+        .version-item { background: #0f172a; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
+        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 6px; background: #1e293b; border: 1px solid #334155; }
+        .version-details { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; padding-right: 120px; }
+        .version-name { font-weight: 700; font-size: 1.1rem; color: #f43f5e; }
+        .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #1e293b; border: 1px solid #475569; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 6px; transition: all 0.2s; }
+        .btn-official-web:hover { background: #334155; border-color: #94a3b8; color: #ffffff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Vocal Software & Engines</h1>
+        <p>Centralized database for synthesizer platforms and software architectures</p>
+    </header>
+
+    <div class="main-layout">
+        <aside class="form-section">
+            <h2>Upload Engine</h2>
+            <form id="engineForm">
+                <div class="form-group">
+                    <label for="engId">Engine ID (e.g., SYNTH-V, VOCALOID):</label>
+                    <input type="text" id="engId" placeholder="e.g., SYNTH-V" required style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label for="engName">Edition / Version Name:</label>
+                    <input type="text" id="engName" placeholder="e.g., Synthesizer V Studio Pro" required>
+                </div>
+                <div class="form-group">
+                    <label for="engImg">Logo / Boxart Image URL:</label>
+                    <input type="url" id="engImg" placeholder="https://example.com/logo.jpg" required>
+                </div>
+                <div class="form-group">
+                    <label for="engDev">Developer / Company:</label>
+                    <input type="text" id="engDev" placeholder="e.g., Dreamtonics" required>
+                </div>
+                <div class="form-group">
+                    <label for="engLicense">License Type:</label>
+                    <select id="engLicense">
+                        <option value="Paid">Paid (Licensed)</option>
+                        <option value="Free">Free (Open Source / Gratis)</option>
+                        <option value="Freemium">Freemium (Free Basic / Paid Pro)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="engDate">Release Date:</label>
+                    <input type="date" id="engDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="engWeb">Official Website (URL):</label>
+                    <input type="url" id="engWeb" placeholder="https://..." required>
+                </div>
+                <button type="submit" id="btnSubmit" class="btn-submit">Register Engine</button>
+            </form>
+        </aside>
+
+        <main class="catalog-section">
+            <div class="search-container">
+                <input type="text" id="searchBar" class="search-bar" placeholder="Search by software name, developer, license...">
+                <button id="btnClearFilter" class="btn-clear-filter" onclick="clearFilter()">Clear Filter</button>
+            </div>
+            
+            <div id="catalogGrid" class="catalog-grid"></div>
+            <div id="pagination" class="pagination"></div>
+        </main>
+    </div>
+</div>
+
+<div id="versionsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <h2 id="modalEngineTitle" class="modal-title">Engine Updates</h2>
+        <p id="modalEngineSubtitle" class="modal-subtitle">ID</p>
+        <div id="versionsList"></div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://zkurztyywzcsnfhtzavp.supabase.co"; 
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprdXJ6dHl5d3pjc25maHR6YXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NjIxNjcsImV4cCI6MjA5NTMzODE2N30.iFetb5DZhsbGmRlYaE-HiG9TF8rJaIV6s9jsM5C07jc";
+    
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const itemsPerPage = 12;
+    let currentPage = 1;
+    let localEngineData = {}; 
+    let sortedEngineIds = []; 
+    let filteredIds = [];
+
+    const form = document.getElementById('engineForm');
+    const catalogGrid = document.getElementById('catalogGrid');
+    const searchBar = document.getElementById('searchBar');
+    const btnClearFilter = document.getElementById('btnClearFilter');
+    const paginationContainer = document.getElementById('pagination');
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    async function loadDataFromSupabase() {
+        const { data, error } = await _supabase
+            .from('engines')
+            .select(`
+                id, developer, license,
+                engine_versions ( name, img, release_date, official_web, created_at )
+            `);
+
+        if (error) {
+            console.error("Error loading software data:", error.message);
+            return;
+        }
+
+        localEngineData = {};
+        data.forEach(eng => {
+            if(eng.engine_versions && eng.engine_versions.length > 0) {
+                const sortedVersions = eng.engine_versions.sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
+                
+                localEngineData[eng.id] = {
+                    id: eng.id,
+                    developer: eng.developer,
+                    license: eng.license,
+                    versions: sortedVersions,
+                    latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].release_date)
+                };
+            }
+        });
+
+        sortedEngineIds = Object.keys(localEngineData).sort((a, b) => {
+            return localEngineData[b].latestReleaseDate - localEngineData[a].latestReleaseDate;
+        });
+
+        applyFilterAndRender();
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "Saving to cloud...";
+
+        const idInput = document.getElementById('engId').value.trim().toUpperCase();
+        const devInput = document.getElementById('engDev').value;
+        const licInput = document.getElementById('engLicense').value;
+
+        const newVersion = {
+            engine_id: idInput,
+            name: document.getElementById('engName').value,
+            img: document.getElementById('engImg').value,
+            release_date: document.getElementById('engDate').value,
+            official_web: document.getElementById('engWeb').value
+        };
+
+        try {
+            const { error: engError } = await _supabase
+                .from('engines')
+                .upsert({ id: idInput, developer: devInput, license: licInput });
+
+            if (engError) throw engError;
+
+            const { error: verError } = await _supabase
+                .from('engine_versions')
+                .insert(newVersion);
+
+            if (verError) throw verError;
+
+            form.reset();
+            await loadDataFromSupabase(); 
+        } catch (err) {
+            alert("Database Error: " + err.message);
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "Register Engine";
+        }
+    });
+
+    function renderCatalog(page) {
+        catalogGrid.innerHTML = "";
+        
+        if (filteredIds.length === 0) {
+            catalogGrid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#64748b;'>No software platforms found.</p>";
+            paginationContainer.innerHTML = "";
+            return;
+        }
+
+        let start = (page - 1) * itemsPerPage;
+        let end = start + itemsPerPage;
+        let paginatedIds = filteredIds.slice(start, end);
+
+        paginatedIds.forEach(id => {
+            const engine = localEngineData[id];
+            const latest = engine.versions[engine.versions.length - 1]; 
+            
+            // Assign specific class depending on license value
+            let licenseClass = "tag-paid";
+            if(engine.license.toLowerCase() === "free") licenseClass = "tag-free";
+            if(engine.license.toLowerCase() === "freemium") licenseClass = "tag-freemium";
+
+            const card = document.createElement('article');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="card-img-box">
+                    <img src="${latest.img}" alt="${latest.name}" onerror="this.src='https://via.placeholder.com/400x300?text=No+Logo'">
+                </div>
+                <div class="card-body">
+                    <span class="software-id">${engine.id}</span>
+                    <h3 class="card-title">${latest.name}</h3>
+                    
+                    <div class="meta-line"><strong>Developer:</strong> ${engine.developer}</div>
+                    <div class="meta-line"><strong>Latest Update:</strong> ${latest.release_date}</div>
+                    
+                    <div class="meta-line" style="margin-top:10px;"><strong>License Type:</strong></div>
+                    <div class="tags-container">
+                        <span class="tag ${licenseClass}" onclick="filterByTag('${engine.license}')">${engine.license}</span>
+                    </div>
+                    
+                    <div class="card-actions">
+                        <button class="btn-view-more" onclick="openModal('${engine.id}')">View History (${engine.versions.length})</button>
+                    </div>
+                </div>
+            `;
+            catalogGrid.appendChild(card);
+        });
+
+        renderPagination();
+    }
+
+    function renderPagination() {
+        paginationContainer.innerHTML = "";
+        const totalPages = Math.ceil(filteredIds.length / itemsPerPage);
+        if (totalPages <= 1) return;
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.addEventListener('click', () => {
+                currentPage = i;
+                renderCatalog(currentPage);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            paginationContainer.appendChild(btn);
+        }
+    }
+
+    function applyFilterAndRender() {
+        const query = searchBar.value.toLowerCase().trim();
+        
+        if (query !== "") {
+            btnClearFilter.style.display = "block";
+        } else {
+            btnClearFilter.style.display = "none";
+        }
+
+        filteredIds = sortedEngineIds.filter(id => {
+            const engine = localEngineData[id];
+            const matchId = engine.id.toLowerCase().includes(query);
+            const matchDev = engine.developer.toLowerCase().includes(query);
+            const matchLicense = engine.license.toLowerCase().includes(query);
+            const matchVersions = engine.versions.some(v => v.name.toLowerCase().includes(query));
+            return matchId || matchDev || matchLicense || matchVersions;
+        });
+
+        currentPage = 1;
+        renderCatalog(currentPage);
+    }
+
+    window.filterByTag = function(tagName) {
+        searchBar.value = tagName;
+        applyFilterAndRender();
+    };
+
+    window.clearFilter = function() {
+        searchBar.value = "";
+        applyFilterAndRender();
+    };
+
+    searchBar.addEventListener('input', applyFilterAndRender);
+
+    window.openModal = function(id) {
+        const engine = localEngineData[id];
+        const modal = document.getElementById('versionsModal');
+        
+        document.getElementById('modalEngineTitle').innerText = `${id} - Version History`;
+        document.getElementById('modalEngineSubtitle').innerText = `Total deployment updates: ${engine.versions.length}`;
+        
+        const listContainer = document.getElementById('versionsList');
+        listContainer.innerHTML = "";
+
+        [...engine.versions].reverse().forEach(v => {
+            const item = document.createElement('div');
+            item.className = 'version-item';
+            item.innerHTML = `
+                <img class="version-img" src="${v.img}" onerror="this.src='https://via.placeholder.com/150?text=No+Logo'">
+                <div class="version-details">
+                    <div class="version-name">${v.name}</div>
+                    <div class="meta-line"><strong>Developer:</strong> ${engine.developer}</div>
+                    <div class="meta-line"><strong>Release Date:</strong> ${v.release_date} | <strong>License:</strong> ${engine.license}</div>
+                </div>
+                <a href="${v.official_web}" target="_blank" class="btn-official-web">Visit Site ↗</a>
+            `;
+            listContainer.appendChild(item);
+        });
+
+        modal.style.display = "flex";
+    };
+
+    window.closeModal = function() {
+        document.getElementById('versionsModal').style.display = "none";
+    };
+
+    loadDataFromSupabase();
+</script>
+
+</body>
+</html>
