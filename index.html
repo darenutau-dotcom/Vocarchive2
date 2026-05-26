@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voicebank Archive con Versiones</title>
+    <title>Voicebank Archive - Supabase Cloud</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: #f4f6f9; color: #333; padding: 20px; }
@@ -22,6 +23,7 @@
         .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
         .btn-submit { width: 100%; padding: 10px; background: #d81b60; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-submit:hover { background: #b0114b; }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
 
         /* Catálogo y Buscador */
         .catalog-section { display: flex; flex-direction: column; gap: 20px; }
@@ -53,14 +55,13 @@
         .page-btn { padding: 8px 14px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 4px; }
         .page-btn.active { background: #d81b60; color: white; border-color: #d81b60; }
 
-        /* VENTANA MODAL (Pantalla Desplegable "Ver Más") */
+        /* VENTANA MODAL */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal-content { background: white; width: 100%; max-width: 700px; max-height: 85vh; border-radius: 8px; padding: 25px; overflow-y: auto; position: relative; }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.8rem; cursor: pointer; color: #666; }
         .modal-title { font-size: 1.5rem; margin-bottom: 5px; color: #111; }
         .modal-subtitle { font-size: 0.9rem; color: #666; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
-        /* Lista de Versiones dentro del Modal */
         .version-item { background: #f8f9fa; border: 1px solid #e9ecef; padding: 15px; border-radius: 6px; margin-bottom: 15px; display: flex; gap: 15px; position: relative;}
         .version-img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; background: #eee; }
         .version-details { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
@@ -75,7 +76,7 @@
 <div class="container">
     <header>
         <h1>Voicebank Central Archive</h1>
-        <p>Estructura por personajes y línea de tiempo de versiones</p>
+        <p>Conectado a Base de Datos en tiempo real via Supabase</p>
     </header>
 
     <div class="main-layout">
@@ -83,7 +84,7 @@
             <h2>Subir Voicebank</h2>
             <form id="voicebankForm">
                 <div class="form-group">
-                    <label for="vbId">Character ID (Ej: MIKU, IA, LENO):</label>
+                    <label for="vbId">Character ID (Ej: MIKU, IA, LEN):</label>
                     <input type="text" id="vbId" placeholder="Ej: MIKU" required style="text-transform: uppercase;">
                 </div>
                 <div class="form-group">
@@ -122,7 +123,7 @@
                     <label for="vbWeb">Official Website (URL):</label>
                     <input type="url" id="vbWeb" placeholder="https://..." required>
                 </div>
-                <button type="submit" class="btn-submit">Registrar Versión</button>
+                <button type="submit" id="btnSubmit" class="btn-submit">Registrar Versión</button>
             </form>
         </aside>
 
@@ -140,46 +141,23 @@
         <span class="close-modal" onclick="closeModal()">&times;</span>
         <h2 id="modalCharacterTitle" class="modal-title">Nombre del Personaje</h2>
         <p id="modalCharacterSubtitle" class="modal-subtitle">ID: MIKU</p>
-        <div id="versionsList">
-            </div>
+        <div id="versionsList"></div>
     </div>
 </div>
 
 <audio id="globalAudioPlayer"></audio>
 
 <script>
-    // Base de datos simulada estructurada por Carpetas de ID Único
-    // Cada ID tiene un array de "versions". La última del array se considera la más reciente.
-    let characterArchive = JSON.parse(localStorage.getItem('characterArchive')) || {
-        "MIKU": {
-            id: "MIKU",
-            versions: [
-                {
-                    name: "Hatsune Miku V2",
-                    demo: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-                    img: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400",
-                    lang: "Japonés",
-                    software: "VOCALOID2",
-                    date: "2007-08-31",
-                    gender: "Femenino",
-                    web: "https://piapro.net"
-                },
-                {
-                    name: "Hatsune Miku V4X Dark",
-                    demo: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-                    img: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400",
-                    lang: "Japonés, Inglés",
-                    software: "VOCALOID4",
-                    date: "2016-08-31",
-                    gender: "Femenino",
-                    web: "https://crypton.co.jp"
-                }
-            ]
-        }
-    };
+    // Configuración de Supabase - REEMPLAZA ESTOS DATOS CON LOS TUYOS
+    const SUPABASE_URL = "https://zkurztyywzcsnfhtzavp.supabase.co/rest/v1/"; 
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprdXJ6dHl5d3pjc25maHR6YXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NjIxNjcsImV4cCI6MjA5NTMzODE2N30.iFetb5DZhsbGmRlYaE-HiG9TF8rJaIV6s9jsM5C07jc";
+    
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Variables globales de la app
     const itemsPerPage = 12;
     let currentPage = 1;
+    let localArchiveData = {}; // Copia local para búsqueda y renderizado rápido
     let filteredIds = [];
 
     const form = document.getElementById('voicebankForm');
@@ -187,42 +165,85 @@
     const searchBar = document.getElementById('searchBar');
     const paginationContainer = document.getElementById('pagination');
     const globalAudio = document.getElementById('globalAudioPlayer');
+    const btnSubmit = document.getElementById('btnSubmit');
 
-    // Al guardar un formulario
-    form.addEventListener('submit', (e) => {
+    // 1. DESCARGAR DATOS DESDE SUPABASE AL INICIAR
+    async function loadDataFromSupabase() {
+        // Consultamos los personajes y unimos sus versiones ordenadas por fecha de creación
+        const { data, error } = await _supabase
+            .from('personajes')
+            .select(`
+                id, gender,
+                versiones ( name, demo, img, lang, software, date, web, created_at )
+            `)
+            .order('created_at', { foreignTable: 'versiones', ascending: true });
+
+        if (error) {
+            console.error("Error cargando datos:", error.message);
+            return;
+        }
+
+        // Formateamos los datos de Supabase al estilo estructurado de nuestro objeto local
+        localArchiveData = {};
+        data.forEach(char => {
+            if(char.versiones && char.versiones.length > 0) {
+                localArchiveData[char.id] = {
+                    id: char.id,
+                    gender: char.gender,
+                    versions: char.versiones
+                };
+            }
+        });
+
+        applyFilterAndRender();
+    }
+
+    // 2. ENVIAR NUEVA VERSIÓN A SUPABASE
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "Guardando en la nube...";
+
         const idInput = document.getElementById('vbId').value.trim().toUpperCase();
-        
+        const genderInput = document.getElementById('vbGender').value;
+
         const newVersion = {
+            personaje_id: idInput,
             name: document.getElementById('vbName').value,
             demo: document.getElementById('vbDemo').value,
             img: document.getElementById('vbImg').value,
             lang: document.getElementById('vbLang').value,
             software: document.getElementById('vbSoftware').value,
             date: document.getElementById('vbDate').value,
-            gender: document.getElementById('vbGender').value,
             web: document.getElementById('vbWeb').value
         };
 
-        // Si el ID de personaje no existe, lo creamos vacío
-        if (!characterArchive[idInput]) {
-            characterArchive[idInput] = {
-                id: idInput,
-                versions: []
-            };
+        try {
+            // Regla: Insertamos el personaje (Si ya existe, 'upsert' lo ignora/actualiza sin romper nada)
+            const { error: charError } = await _supabase
+                .from('personajes')
+                .upsert({ id: idInput, gender: genderInput });
+
+            if (charError) throw charError;
+
+            // Insertamos la versión asociada al personaje
+            const { error: verError } = await _supabase
+                .from('versiones')
+                .insert(newVersion);
+
+            if (verError) throw verError;
+
+            form.reset();
+            await loadDataFromSupabase(); // Recargar todo desde la nube para actualizar la interfaz
+        } catch (err) {
+            alert("Error al subir a la base de datos: " + err.message);
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "Registrar Versión";
         }
-
-        // Agregamos la nueva versión al final del historial (es la más reciente)
-        characterArchive[idInput].versions.push(newVersion);
-
-        // Guardar cambios
-        localStorage.setItem('characterArchive', JSON.stringify(characterArchive));
-        form.reset();
-        applyFilterAndRender();
     });
 
-    // Renderizar el catálogo principal
+    // 3. RENDERIZAR EL CATÁLOGO (Igual que antes, pero con datos de la nube)
     function renderCatalog(page) {
         catalogGrid.innerHTML = "";
         
@@ -237,9 +258,8 @@
         let paginatedIds = filteredIds.slice(start, end);
 
         paginatedIds.forEach(id => {
-            const character = characterArchive[id];
-            // La versión más reciente es la ÚLTIMA del arreglo
-            const latest = character.versions[character.versions.length - 1];
+            const character = localArchiveData[id];
+            const latest = character.versions[character.versions.length - 1]; // El más reciente
 
             const card = document.createElement('article');
             card.className = 'card';
@@ -253,7 +273,7 @@
                 <div class="card-body">
                     <span class="character-id">ID: ${character.id}</span>
                     <h3 class="card-title">${latest.name}</h3>
-                    <div class="meta-line"><strong>Género:</strong> ${latest.gender}</div>
+                    <div class="meta-line"><strong>Género:</strong> ${character.gender}</div>
                     <div class="meta-line"><strong>Idiomas:</strong></div>
                     <div class="tags-container">
                         ${latest.lang.split(',').map(l => `<span class="tag">${l.trim()}</span>`).join('')}
@@ -271,7 +291,6 @@
         renderPagination();
     }
 
-    // Paginación de IDs de personajes
     function renderPagination() {
         paginationContainer.innerHTML = "";
         const totalPages = Math.ceil(filteredIds.length / itemsPerPage);
@@ -289,21 +308,19 @@
         }
     }
 
-    // Buscador: Busca coincidencias en CUALQUIERA de las versiones de un personaje
     function applyFilterAndRender() {
         const query = searchBar.value.toLowerCase().trim();
         
-        filteredIds = Object.keys(characterArchive).filter(id => {
-            const character = characterArchive[id];
-            // Un personaje pasa el filtro si su ID coincide, o si AL MENOS una de sus versiones coincide
+        filteredIds = Object.keys(localArchiveData).filter(id => {
+            const character = localArchiveData[id];
             const matchId = character.id.toLowerCase().includes(query);
+            const matchGender = character.gender.toLowerCase().includes(query);
             const matchVersions = character.versions.some(v => 
                 v.name.toLowerCase().includes(query) ||
                 v.software.toLowerCase().includes(query) ||
-                v.lang.toLowerCase().includes(query) ||
-                v.gender.toLowerCase().includes(query)
+                v.lang.toLowerCase().includes(query)
             );
-            return matchId || matchVersions;
+            return matchId || matchGender || matchVersions;
         });
 
         currentPage = 1;
@@ -312,19 +329,18 @@
 
     searchBar.addEventListener('input', applyFilterAndRender);
 
-    // Sistema Desplegable (Modal) para desglozar los Appends / Versiones
+    // 4. MODAL DETALLES DESPLEGABLES
     window.openModal = function(id) {
-        const character = characterArchive[id];
+        const character = localArchiveData[id];
         const modal = document.getElementById('versionsModal');
-        const latest = character.versions[character.versions.length - 1];
         
         document.getElementById('modalCharacterTitle').innerText = `Historial de ${id}`;
-        document.getElementById('modalCharacterSubtitle').innerText = `Total de voicebanks registrados: ${character.versions.length}`;
+        document.getElementById('modalCharacterSubtitle').innerText = `Total de voicebanks registrados en la nube: ${character.versions.length}`;
         
         const listContainer = document.getElementById('versionsList');
         listContainer.innerHTML = "";
 
-        // Mostramos la lista de versiones ordenadas (de la más nueva a la más antigua)
+        // Reversamos para que muestre el más nuevo primero
         [...character.versions].reverse().forEach(v => {
             const item = document.createElement('div');
             item.className = 'version-item';
@@ -333,7 +349,7 @@
                 <div class="version-details">
                     <div class="version-name">${v.name}</div>
                     <div class="meta-line"><strong>Software:</strong> ${v.software} | <strong>Lanzamiento:</strong> ${v.date}</div>
-                    <div class="meta-line"><strong>Idiomas:</strong> ${v.lang} | <strong>Género:</strong> ${v.gender}</div>
+                    <div class="meta-line"><strong>Idiomas:</strong> ${v.lang} | <strong>Género:</strong> ${character.gender}</div>
                     <button class="modal-play-btn" onclick="playAudio('${v.demo}', this)">▶ Escuchar Demo</button>
                 </div>
                 <a href="${v.web}" target="_blank" class="btn-official-web">Sitio Oficial ↗</a>
@@ -349,7 +365,6 @@
         globalAudio.pause();
     };
 
-    // Controlador de Audio
     window.playAudio = function(url, button) {
         if (globalAudio.src === url && !globalAudio.paused) {
             globalAudio.pause();
@@ -365,7 +380,8 @@
         }
     };
 
-    applyFilterAndRender();
+    // Al iniciar el archivo, conectamos y leemos la base de datos de internet
+    loadDataFromSupabase();
 </script>
 
 </body>
