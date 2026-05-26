@@ -1,97 +1,102 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voicebank Archive - Premium Store Layout</title>
+    <title>Voicebank Central Archive</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
-        body { background-color: #f8fafc; color: #1e293b; padding: 30px 20px; }
+        
+        /* Premium Dark Theme Base */
+        body { background-color: #0f172a; color: #f1f5f9; padding: 30px 20px; }
         
         .container { max-width: 1400px; margin: 0 auto; }
         header { text-align: center; margin-bottom: 40px; }
-        header h1 { font-size: 2.2rem; color: #0f172a; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 5px; }
-        header p { color: #64748b; font-size: 0.95rem; }
+        header h1 { font-size: 2.2rem; color: #ffffff; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 5px; }
+        header p { color: #94a3b8; font-size: 0.95rem; }
         
         .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 35px; }
         @media (max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
 
-        /* Formulario Moderno */
-        .form-section { background: white; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 20px; }
-        .form-section h2 { margin-bottom: 20px; font-size: 1.25rem; color: #0f172a; font-weight: 700; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+        /* Modern Dark Form */
+        .form-section { background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); height: fit-content; position: sticky; top: 20px; }
+        .form-section h2 { margin-bottom: 20px; font-size: 1.25rem; color: #ffffff; font-weight: 700; border-bottom: 2px solid #334155; padding-bottom: 8px; }
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; }
-        .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; color: #0f172a; transition: all 0.2s; background-color: #f8fafc; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #e11d48; background-color: white; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15); }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #475569; border-radius: 6px; font-size: 0.9rem; color: #ffffff; transition: all 0.2s; background-color: #0f172a; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #e11d48; background-color: #0f172a; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25); }
+        .form-group input::placeholder { color: #475569; }
+        
         .btn-submit { width: 100%; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
         .btn-submit:hover { background: #be123c; }
-        .btn-submit:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .btn-submit:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
 
-        /* Buscador y Controles */
+        /* Search & Controls */
         .catalog-section { display: flex; flex-direction: column; gap: 25px; }
         .search-container { display: flex; gap: 10px; width: 100%; }
-        .search-bar { flex-grow: 1; padding: 14px 24px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); background: white; transition: all 0.2s; }
-        .search-bar:focus { outline: none; border-color: #e11d48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15); }
-        .btn-clear-filter { padding: 0 20px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #475569; cursor: pointer; display: none; }
-        .btn-clear-filter:hover { background: #e2e8f0; }
+        .search-bar { flex-grow: 1; padding: 14px 24px; border: 1px solid #334155; border-radius: 8px; font-size: 0.95rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background: #1e293b; color: #ffffff; transition: all 0.2s; }
+        .search-bar:focus { outline: none; border-color: #e11d48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25); }
+        .search-bar::placeholder { color: #64748b; }
+        .btn-clear-filter { padding: 0 20px; background: #334155; border: 1px solid #475569; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #f1f5f9; cursor: pointer; display: none; }
+        .btn-clear-filter:hover { background: #475569; }
         
-        /* Grid de Catálogo estilo E-Commerce */
+        /* Dark E-Commerce Grid Layout */
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
-        .card { background: white; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: transform 0.2s, box-shadow 0.2s; min-height: 480px; }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -3px rgba(0,0,0,0.08); }
+        .card { background: #1e293b; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-height: 480px; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4); border-color: #475569; }
         
-        /* Ajuste de Tamaño de Imagen Fijo */
-        .card-img-box { width: 100%; aspect-ratio: 4/3; background: #f1f5f9; position: relative; overflow: hidden; border-bottom: 1px solid #e2e8f0; }
+        /* Image Cover Box */
+        .card-img-box { width: 100%; aspect-ratio: 4/3; background: #0f172a; position: relative; overflow: hidden; border-bottom: 1px solid #334155; }
         .card-img-box img { width: 100%; height: 100%; object-fit: cover; }
         
-        .audio-player-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+        .audio-player-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
         .card-img-box:hover .audio-player-box { opacity: 1; }
-        .play-btn { background: white; border: none; color: #0f172a; width: 50px; height: 50px; font-size: 1.2rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s; }
-        .play-btn:hover { transform: scale(1.1); }
+        .play-btn { background: #ffffff; border: none; color: #0f172a; width: 50px; height: 50px; font-size: 1.2rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: transform 0.2s; }
+        .play-btn:hover { transform: scale(1.1); background: #e11d48; color: white; }
 
-        /* Cuerpo Interno de la Tarjeta */
+        /* Card Content */
         .card-body { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
-        .character-id { font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-        .card-title { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; line-height: 1.3; height: 46px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .character-id { font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 12px; line-height: 1.3; height: 46px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         
-        .meta-line { font-size: 0.8rem; color: #64748b; margin-bottom: 4px; }
-        .meta-line strong { color: #334155; }
+        .meta-line { font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px; }
+        .meta-line strong { color: #cbd5e1; }
         
-        /* Contenedores de Tags */
+        /* Neon/Dark Tags */
         .tags-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; margin-bottom: 14px; }
-        .tag { font-size: 0.7rem; font-weight: 700; padding: 4px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; text-transform: uppercase; color: #475569; cursor: pointer; transition: all 0.15s; }
+        .tag { font-size: 0.7rem; font-weight: 700; padding: 4px 8px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; text-transform: uppercase; color: #cbd5e1; cursor: pointer; transition: all 0.15s; }
         .tag:hover { background: #e11d48; color: white; border-color: #e11d48; }
-        .tag-software { background: #fff1f2; border-color: #ffe4e6; color: #e11d48; }
+        .tag-software { background: rgba(225, 29, 72, 0.1); border-color: rgba(225, 29, 72, 0.3); color: #f43f5e; }
         .tag-software:hover { background: #e11d48; color: white; }
 
-        /* Fila Inferior con Botón unificado */
-        .card-actions { margin-top: auto; border-top: 1px solid #f1f5f9; padding-top: 15px; }
-        .btn-view-more { display: block; width: 100%; text-align: center; background: #0f172a; color: white; padding: 11px; text-decoration: none; font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: none; cursor: pointer; transition: background 0.2s; }
-        .btn-view-more:hover { background: #1e293b; }
+        /* Bottom Action Button */
+        .card-actions { margin-top: auto; border-top: 1px solid #334155; padding-top: 15px; }
+        .btn-view-more { display: block; width: 100%; text-align: center; background: #0f172a; color: white; padding: 11px; text-decoration: none; font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #334155; cursor: pointer; transition: all 0.2s; }
+        .btn-view-more:hover { background: #e11d48; border-color: #e11d48; }
 
-        /* Paginación */
+        /* Pagination */
         .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
-        .page-btn { padding: 10px 16px; border: 1px solid #e2e8f0; background: white; cursor: pointer; border-radius: 6px; font-weight: 600; color: #475569; transition: all 0.2s; }
-        .page-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+        .page-btn { padding: 10px 16px; border: 1px solid #334155; background: #1e293b; cursor: pointer; border-radius: 6px; font-weight: 600; color: #cbd5e1; transition: all 0.2s; }
+        .page-btn:hover { border-color: #475569; background: #334155; }
         .page-btn.active { background: #e11d48; color: white; border-color: #e11d48; }
 
-        /* VENTANA MODAL */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); justify-content: center; align-items: center; z-index: 1000; padding: 20px; backdrop-filter: blur(4px); }
-        .modal-content { background: white; width: 100%; max-width: 750px; max-height: 85vh; border-radius: 12px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #94a3b8; transition: color 0.2s; }
-        .close-modal:hover { color: #475569; }
-        .modal-title { font-size: 1.6rem; margin-bottom: 6px; color: #0f172a; font-weight: 800; }
-        .modal-subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; }
+        /* DARK MODAL WINDOW */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); justify-content: center; align-items: center; z-index: 1000; padding: 20px; backdrop-filter: blur(6px); }
+        .modal-content { background: #1e293b; width: 100%; max-width: 750px; max-height: 85vh; border-radius: 12px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #64748b; transition: color 0.2s; }
+        .close-modal:hover { color: #f1f5f9; }
+        .modal-title { font-size: 1.6rem; margin-bottom: 6px; color: #ffffff; font-weight: 800; }
+        .modal-subtitle { font-size: 0.9rem; color: #94a3b8; margin-bottom: 25px; border-bottom: 2px solid #334155; padding-bottom: 12px; }
         
-        .version-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
-        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 6px; background: #e2e8f0; border: 1px solid #e2e8f0; }
+        .version-item { background: #0f172a; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
+        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 6px; background: #1e293b; border: 1px solid #334155; }
         .version-details { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; padding-right: 120px; }
-        .version-name { font-weight: 700; font-size: 1.1rem; color: #e11d48; }
-        .modal-play-btn { background: #0f172a; color: white; border: none; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 4px; cursor: pointer; width: fit-content; margin-top: 4px; transition: background 0.2s; }
-        .modal-play-btn:hover { background: #1e293b; }
-        .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: white; border: 1px solid #cbd5e1; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #475569; border-radius: 6px; transition: all 0.2s; }
-        .btn-official-web:hover { background: #f1f5f9; border-color: #94a3b8; color: #0f172a; }
+        .version-name { font-weight: 700; font-size: 1.1rem; color: #f43f5e; }
+        .modal-play-btn { background: #e11d48; color: white; border: none; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 4px; cursor: pointer; width: fit-content; margin-top: 4px; transition: background 0.2s; }
+        .modal-play-btn:hover { background: #be123c; }
+        .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #1e293b; border: 1px solid #475569; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 6px; transition: all 0.2s; }
+        .btn-official-web:hover { background: #334155; border-color: #94a3b8; color: #ffffff; }
     </style>
 </head>
 <body>
@@ -99,61 +104,61 @@
 <div class="container">
     <header>
         <h1>Voicebank Central Archive</h1>
-        <p>Catálogo unificado y base de datos global en tiempo real</p>
+        <p>Unified catalog and global cloud database in real time</p>
     </header>
 
     <div class="main-layout">
         <aside class="form-section">
-            <h2>Subir Voicebank</h2>
+            <h2>Upload Voicebank</h2>
             <form id="voicebankForm">
                 <div class="form-group">
-                    <label for="vbId">Character ID (Ej: MIKU, IA):</label>
-                    <input type="text" id="vbId" placeholder="Ej: MIKU" required style="text-transform: uppercase;">
+                    <label for="vbId">Character ID (e.g., MIKU, IA):</label>
+                    <input type="text" id="vbId" placeholder="e.g., MIKU" required style="text-transform: uppercase;">
                 </div>
                 <div class="form-group">
-                    <label for="vbName">Nombre de la Versión / Append:</label>
-                    <input type="text" id="vbName" placeholder="Ej: Hatsune Miku V4X Dark" required>
+                    <label for="vbName">Version Name / Append:</label>
+                    <input type="text" id="vbName" placeholder="e.g., Hatsune Miku V4X Dark" required>
                 </div>
                 <div class="form-group">
-                    <label for="vbDemo">URL Demo Song (Audio):</label>
-                    <input type="url" id="vbDemo" placeholder="https://ejemplo.com/audio.mp3" required>
+                    <label for="vbDemo">Demo Song URL (Audio):</label>
+                    <input type="url" id="vbDemo" placeholder="https://example.com/audio.mp3" required>
                 </div>
                 <div class="form-group">
-                    <label for="vbImg">URL Imagen de la versión:</label>
-                    <input type="url" id="vbImg" placeholder="https://ejemplo.com/imagen.jpg" required>
+                    <label for="vbImg">Version Image URL:</label>
+                    <input type="url" id="vbImg" placeholder="https://example.com/image.jpg" required>
                 </div>
                 <div class="form-group">
-                    <label for="vbLang">Idioma(s) (Separados por comas):</label>
-                    <input type="text" id="vbLang" placeholder="Ej: Japonés, Inglés" required>
+                    <label for="vbLang">Language(s) (Comma separated):</label>
+                    <input type="text" id="vbLang" placeholder="e.g., Japanese, English" required>
                 </div>
                 <div class="form-group">
-                    <label for="vbSoftware">Software (Separados por comas):</label>
-                    <input type="text" id="vbSoftware" placeholder="Ej: VOCALOID4, Synthesizer V" required>
+                    <label for="vbSoftware">Software / Engine (Comma separated):</label>
+                    <input type="text" id="vbSoftware" placeholder="e.g., VOCALOID6, Synthesizer V" required>
                 </div>
                 <div class="form-group">
-                    <label for="vbDate">Fecha de Lanzamiento:</label>
+                    <label for="vbDate">Release Date:</label>
                     <input type="date" id="vbDate" required>
                 </div>
                 <div class="form-group">
-                    <label for="vbGender">Género de Voz:</label>
+                    <label for="vbGender">Voice Gender:</label>
                     <select id="vbGender">
-                        <option value="Femenino">Femenino</option>
-                        <option value="Masculino">Masculino</option>
-                        <option value="Ambos / Otro">Ambos / Otro</option>
+                        <option value="Female">Female</option>
+                        <option value="Male">Male</option>
+                        <option value="Both / Other">Both / Other</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="vbWeb">Sitio Oficial (URL):</label>
+                    <label for="vbWeb">Official Website (URL):</label>
                     <input type="url" id="vbWeb" placeholder="https://..." required>
                 </div>
-                <button type="submit" id="btnSubmit" class="btn-submit">Registrar Versión</button>
+                <button type="submit" id="btnSubmit" class="btn-submit">Register Version</button>
             </form>
         </aside>
 
         <main class="catalog-section">
             <div class="search-container">
-                <input type="text" id="searchBar" class="search-bar" placeholder="Buscar por personaje, versión, idiomas, motores...">
-                <button id="btnClearFilter" class="btn-clear-filter" onclick="clearFilter()">Limpiar Filtro</button>
+                <input type="text" id="searchBar" class="search-bar" placeholder="Search by character, version, languages, engines...">
+                <button id="btnClearFilter" class="btn-clear-filter" onclick="clearFilter()">Clear Filter</button>
             </div>
             
             <div id="catalogGrid" class="catalog-grid"></div>
@@ -165,7 +170,7 @@
 <div id="versionsModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal()">&times;</span>
-        <h2 id="modalCharacterTitle" class="modal-title">Nombre del Personaje</h2>
+        <h2 id="modalCharacterTitle" class="modal-title">Character History</h2>
         <p id="modalCharacterSubtitle" class="modal-subtitle">ID</p>
         <div id="versionsList"></div>
     </div>
@@ -182,7 +187,7 @@
     const itemsPerPage = 12;
     let currentPage = 1;
     let localArchiveData = {}; 
-    let sortedCharacterIds = []; // IDs ordenados cronológicamente por lanzamiento real
+    let sortedCharacterIds = []; 
     let filteredIds = [];
 
     const form = document.getElementById('voicebankForm');
@@ -202,27 +207,29 @@
             `);
 
         if (error) {
-            console.error("Error cargando datos:", error.message);
+            console.error("Error loading data:", error.message);
             return;
         }
 
         localArchiveData = {};
         data.forEach(char => {
             if(char.versiones && char.versiones.length > 0) {
-                // Ordenamos internamente las versiones de este personaje por su fecha de lanzamiento real
                 const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
                 
+                // Translate gender data from DB smoothly to English for front-end presentation
+                let displayGender = "Other";
+                if (char.gender === "Femenino" || char.gender === "Female") displayGender = "Female";
+                if (char.gender === "Masculino" || char.gender === "Male") displayGender = "Male";
+
                 localArchiveData[char.id] = {
                     id: char.id,
-                    gender: char.gender,
+                    gender: displayGender,
                     versions: sortedVersions,
-                    // Tomamos la fecha de la versión más reciente como referencia global del personaje
                     latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date)
                 };
             }
         });
 
-        // REGLA: Ordenar la lista global de personajes por su lanzamiento real (Más reciente primero)
         sortedCharacterIds = Object.keys(localArchiveData).sort((a, b) => {
             return localArchiveData[b].latestReleaseDate - localArchiveData[a].latestReleaseDate;
         });
@@ -233,10 +240,10 @@
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         btnSubmit.disabled = true;
-        btnSubmit.innerText = "Guardando en la nube...";
+        btnSubmit.innerText = "Saving to cloud...";
 
         const idInput = document.getElementById('vbId').value.trim().toUpperCase();
-        const genderInput = document.getElementById('vbGender').value;
+        let genderInput = document.getElementById('vbGender').value;
 
         const newVersion = {
             personaje_id: idInput,
@@ -265,10 +272,10 @@
             form.reset();
             await loadDataFromSupabase(); 
         } catch (err) {
-            alert("Error al subir a la base de datos: " + err.message);
+            alert("Database Error: " + err.message);
         } finally {
             btnSubmit.disabled = false;
-            btnSubmit.innerText = "Registrar Versión";
+            btnSubmit.innerText = "Register Version";
         }
     });
 
@@ -276,7 +283,7 @@
         catalogGrid.innerHTML = "";
         
         if (filteredIds.length === 0) {
-            catalogGrid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#64748b;'>No se encontraron voicebanks.</p>";
+            catalogGrid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#64748b;'>No voicebanks found matching your criteria.</p>";
             paginationContainer.innerHTML = "";
             return;
         }
@@ -288,8 +295,6 @@
         paginatedIds.forEach(id => {
             const character = localArchiveData[id];
             const latest = character.versions[character.versions.length - 1]; 
-
-            // Formatear fecha para el diseño visual (AAAA-MM-DD)
             const releaseDateStr = latest.date;
 
             const card = document.createElement('article');
@@ -305,10 +310,10 @@
                     <span class="character-id">${character.id}</span>
                     <h3 class="card-title">${latest.name}</h3>
                     
-                    <div class="meta-line"><strong>Lanzamiento:</strong> ${releaseDateStr}</div>
-                    <div class="meta-line"><strong>Género:</strong> ${character.gender}</div>
+                    <div class="meta-line"><strong>Release:</strong> ${releaseDateStr}</div>
+                    <div class="meta-line"><strong>Gender:</strong> ${character.gender}</div>
                     
-                    <div class="meta-line" style="margin-top:10px;"><strong>Idiomas:</strong></div>
+                    <div class="meta-line" style="margin-top:10px;"><strong>Languages:</strong></div>
                     <div class="tags-container">
                         ${latest.lang.split(',').map(l => `<span class="tag" onclick="filterByTag('${l.trim()}')">${l.trim()}</span>`).join('')}
                     </div>
@@ -319,7 +324,7 @@
                     </div>
                     
                     <div class="card-actions">
-                        <button class="btn-view-more" onclick="openModal('${character.id}')">Ver Versiones (${character.versions.length})</button>
+                        <button class="btn-view-more" onclick="openModal('${character.id}')">View Versions (${character.versions.length})</button>
                     </div>
                 </div>
             `;
@@ -356,7 +361,6 @@
             btnClearFilter.style.display = "none";
         }
 
-        // Filtramos respetando el orden cronológico preestablecido en sortedCharacterIds
         filteredIds = sortedCharacterIds.filter(id => {
             const character = localArchiveData[id];
             const matchId = character.id.toLowerCase().includes(query);
@@ -373,13 +377,11 @@
         renderCatalog(currentPage);
     }
 
-    // Filtrar al dar click en un tag
     window.filterByTag = function(tagName) {
         searchBar.value = tagName;
         applyFilterAndRender();
     };
 
-    // Limpiar el buscador
     window.clearFilter = function() {
         searchBar.value = "";
         applyFilterAndRender();
@@ -391,13 +393,12 @@
         const character = localArchiveData[id];
         const modal = document.getElementById('versionsModal');
         
-        document.getElementById('modalCharacterTitle').innerText = `Historial de ${id}`;
-        document.getElementById('modalCharacterSubtitle').innerText = `Total de versiones en archivo: ${character.versions.length}`;
+        document.getElementById('modalCharacterTitle').innerText = `${id} - Archival Logs`;
+        document.getElementById('modalCharacterSubtitle').innerText = `Total alternative versions found: ${character.versions.length}`;
         
         const listContainer = document.getElementById('versionsList');
         listContainer.innerHTML = "";
 
-        // Mostramos las versiones (las más nuevas en lanzamiento arriba)
         [...character.versions].reverse().forEach(v => {
             const item = document.createElement('div');
             item.className = 'version-item';
@@ -406,11 +407,11 @@
                 <div class="version-details">
                     <div class="version-name">${v.name}</div>
                     <div class="meta-line"><strong>Software:</strong> ${v.software}</div>
-                    <div class="meta-line"><strong>Lanzamiento:</strong> ${v.date} | <strong>Género:</strong> ${character.gender}</div>
-                    <div class="meta-line"><strong>Idiomas:</strong> ${v.lang}</div>
-                    <button class="modal-play-btn" onclick="playAudio('${v.demo}', this)">▶ Escuchar Demo</button>
+                    <div class="meta-line"><strong>Release Date:</strong> ${v.date} | <strong>Voice Gender:</strong> ${character.gender}</div>
+                    <div class="meta-line"><strong>Languages:</strong> ${v.lang}</div>
+                    <button class="modal-play-btn" onclick="playAudio('${v.demo}', this)">▶ Play Demo</button>
                 </div>
-                <a href="${v.web}" target="_blank" class="btn-official-web">Sitio Oficial ↗</a>
+                <a href="${v.web}" target="_blank" class="btn-official-web">Official Site ↗</a>
             `;
             listContainer.appendChild(item);
         });
@@ -426,15 +427,15 @@
     window.playAudio = function(url, button) {
         if (globalAudio.src === url && !globalAudio.paused) {
             globalAudio.pause();
-            button.innerText = button.classList.contains('play-btn') ? "▶" : "▶ Escuchar Demo";
+            button.innerHTML = button.classList.contains('play-btn') ? "▶" : "▶ Play Demo";
         } else {
             document.querySelectorAll('.play-btn, .modal-play-btn').forEach(btn => {
-                if(btn.classList.contains('play-btn')) btn.innerText = "▶";
-                else btn.innerText = "▶ Escuchar Demo";
+                if(btn.classList.contains('play-btn')) btn.innerHTML = "▶";
+                else btn.innerHTML = "▶ Play Demo";
             });
             globalAudio.src = url;
             globalAudio.play();
-            button.innerText = "⏸";
+            button.innerHTML = "⏸";
         }
     };
 
