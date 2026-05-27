@@ -145,8 +145,8 @@
                     <input type="text" id="vbName" placeholder="e.g., Hatsune Miku V4X Dark" required>
                 </div>
                 <div class="form-group">
-                    <label for="vbDemo">Demo Song URL (Audio):</label>
-                    <input type="url" id="vbDemo" placeholder="https://example.com/audio.mp3" required>
+                    <label for="vbDemo">Demo Song URL (Audio) <span style="color:#64748b; font-size:0.75rem;">(Optional)</span>:</label>
+                    <input type="url" id="vbDemo" placeholder="https://example.com/audio.mp3">
                 </div>
                 <div class="form-group">
                     <label for="vbImg">Version Image URL:</label>
@@ -303,7 +303,7 @@
         try {
             await _supabase.from('personajes').upsert({ id: idInput, gender: document.getElementById('vbGender').value });
             await _supabase.from('versiones').insert({
-                personaje_id: idInput, name: document.getElementById('vbName').value, demo: document.getElementById('vbDemo').value,
+                personaje_id: idInput, name: document.getElementById('vbName').value, demo: document.getElementById('vbDemo').value || null,
                 img: document.getElementById('vbImg').value, lang: document.getElementById('vbLang').value,
                 software: document.getElementById('vbSoftware').value, date: document.getElementById('vbDate').value, web: document.getElementById('vbWeb').value
             });
@@ -319,9 +319,15 @@
         let paginated = filteredVbIds.slice((page - 1) * itemsPerPage, page * itemsPerPage);
         paginated.forEach(id => {
             const char = localVbData[id]; const latest = char.versions[char.versions.length - 1];
+            
+            // Conditionally hide play overlay box if demo is empty
+            const audioBoxHtml = (latest.demo && latest.demo.trim() !== "") 
+                ? `<div class="audio-player-box"><button class="play-btn" onclick="playAudio('${latest.demo}', this)">▶</button></div>` 
+                : '';
+
             const card = document.createElement('article'); card.className = 'card';
             card.innerHTML = `
-                <div class="card-img-box"><img src="${latest.img}"><div class="audio-player-box"><button class="play-btn" onclick="playAudio('${latest.demo}', this)">▶</button></div></div>
+                <div class="card-img-box"><img src="${latest.img}">${audioBoxHtml}</div>
                 <div class="card-body">
                     <span class="meta-id-tag">${char.id}</span><h3 class="card-title">${latest.name}</h3>
                     <div class="meta-line"><strong>Release:</strong> ${latest.date}</div><div class="meta-line"><strong>Gender:</strong> ${char.gender}</div>
@@ -438,6 +444,11 @@
         document.getElementById('modalSubtitle').innerText = `Total alternative configurations: ${c.versions.length}`;
         const list = document.getElementById('modalList'); list.innerHTML = "";
         [...c.versions].reverse().forEach(v => {
+            // Hide modal play button if demo URL doesn't exist
+            const modalPlayBtnHtml = (v.demo && v.demo.trim() !== "")
+                ? `<button class="modal-play-btn" onclick="playAudio('${v.demo}', this)">▶ Play Demo</button>`
+                : '';
+
             list.innerHTML += `
                 <div class="version-item">
                     <img class="version-img" src="${v.img}">
@@ -446,7 +457,7 @@
                         <div class="meta-line"><strong>Software:</strong> ${v.software}</div>
                         <div class="meta-line"><strong>Release Date:</strong> ${v.date} | <strong>Gender:</strong> ${c.gender}</div>
                         <div class="meta-line"><strong>Languages:</strong> ${v.lang}</div>
-                        <button class="modal-play-btn" onclick="playAudio('${v.demo}', this)">▶ Play Demo</button>
+                        ${modalPlayBtnHtml}
                     </div><a href="${v.web}" target="_blank" class="btn-official-web">Official Site ↗</a>
                 </div>`;
         });
