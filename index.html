@@ -65,10 +65,6 @@
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
         .card { background: #1e293b; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-height: 480px; position: relative; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4); border-color: #475569; }
-        
-        /* QUICK EDIT FLOATING BUTTON */
-        .btn-quick-edit { position: absolute; top: 12px; right: 12px; background: rgba(30, 41, 59, 0.85); border: 1px solid #475569; color: #cbd5e1; width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; backdrop-filter: blur(4px); transition: all 0.2s; font-size: 0.9rem; }
-        .btn-quick-edit:hover { background: #0ea5e9; color: white; border-color: #0ea5e9; transform: scale(1.05); }
 
         /* IMAGE CONTROLLER */
         .card-img-box { width: 100%; aspect-ratio: 4/3; background: #0f172a; position: relative; overflow: hidden; border-bottom: 1px solid #334155; }
@@ -126,6 +122,11 @@
         .version-name { font-weight: 700; font-size: 1.1rem; color: #f43f5e; }
         .modal-play-btn { background: #e11d48; color: white; border: none; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 4px; cursor: pointer; width: fit-content; margin-top: 4px; transition: background 0.2s; }
         .modal-play-btn:hover { background: #be123c; }
+        
+        /* Botón de editar exclusivo para el modal de versiones */
+        .btn-modal-edit { background: #334155; border: 1px solid #475569; color: #cbd5e1; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 4px; cursor: pointer; margin-top: 4px; margin-left: 8px; transition: all 0.2s; }
+        .btn-modal-edit:hover { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+
         .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #1e293b; border: 1px solid #475569; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 6px; transition: all 0.2s; }
         .btn-official-web:hover { background: #334155; border-color: #94a3b8; color: #ffffff; }
     </style>
@@ -148,7 +149,7 @@
         <aside class="form-section" id="vbFormContainer">
             <h2 id="vbFormTitle">Upload Voicebank</h2>
             <form id="voicebankForm">
-                <!-- ID de la versión interna oculta si estamos editando -->
+                <!-- ID de la versión interna oculta de la fila en Supabase para el modo edición -->
                 <input type="hidden" id="editingVersionId" value="">
                 
                 <div class="form-group">
@@ -281,7 +282,7 @@
     let localVbData = {}, sortedVbIds = [], filteredVbIds = [], currentPageVb = 1;
     let localSwData = {}, sortedSwIds = [], filteredSwIds = [], currentPageSw = 1;
 
-    let isEditingVb = false; // Estado global para saber si el formulario edita o registra
+    let isEditingVb = false; // Flag global de control de formulario
 
     const globalAudio = document.getElementById('globalAudioPlayer');
 
@@ -297,7 +298,6 @@
 
     // --- SECTION 1: VOICEBANKS ENGINE ---
     async function loadVoicebanks() {
-        // Obtenemos explícitamente la columna 'id' interna de la tabla versiones para poder mapearla después
         const { data, error } = await _supabase.from('personajes').select(`id, gender, versiones ( id, name, demo, img, lang, software, date, web, created_at )`);
         if (error) return console.error(error.message);
 
@@ -320,7 +320,6 @@
         const idInput = document.getElementById('vbId').value.trim().toUpperCase();
         
         try {
-            // Guardamos o actualizamos al personaje raíz
             await _supabase.from('personajes').upsert({ id: idInput, gender: document.getElementById('vbGender').value });
             
             const versionPayload = {
@@ -335,51 +334,52 @@
             };
 
             if (isEditingVb) {
-                // Si está en modo edición, inyectamos la ID de la fila exacta para actualizarla
+                // Inyectamos ID único numérico para sobreescribir la versión exacta seleccionada en el modal
                 versionPayload.id = parseInt(document.getElementById('editingVersionId').value);
                 await _supabase.from('versiones').upsert(versionPayload);
-                cancelVbEditing(); // Resetea el formulario al modo por defecto
+                cancelVbEditing();
             } else {
-                // Modo registro tradicional
                 await _supabase.from('versiones').insert(versionPayload);
                 document.getElementById('voicebankForm').reset();
             }
 
             await loadVoicebanks();
+            alert("Voicebank procesado correctamente.");
         } catch (x) { alert(x.message); } finally { btn.disabled = false; btn.innerText = isEditingVb ? "Update Version" : "Register Version"; }
     });
 
-    // Función intuitiva: Carga los datos de la tarjeta en el formulario con un clic
-    window.startVbEdit = function(charId) {
+    // Carga dirigida de datos desde el modal hacia el formulario
+    window.startVbEditDirect = function(charId, versionId) {
         const char = localVbData[charId];
-        const latest = char.versions[char.versions.length - 1]; // Tomar la última configuración visible
+        const targetedVersion = char.versions.find(v => v.id === versionId);
+
+        if (!targetedVersion) return;
 
         isEditingVb = true;
         
-        // Efectos visuales en el contenedor del formulario
         const container = document.getElementById('vbFormContainer');
         container.classList.add('editing-mode');
-        document.getElementById('vbFormTitle').innerText = `⚠️ Editing: ${charId}`;
+        document.getElementById('vbFormTitle').innerText = `⚠️ Editing Version: ${charId}`;
         
         const submitBtn = document.getElementById('btnSubmitVb');
         submitBtn.innerText = "Update Version";
         submitBtn.classList.add('btn-edit-active');
         document.getElementById('btnCancelVbEdit').style.display = "block";
 
-        // Mapeo automático de los datos hacia los inputs
-        document.getElementById('editingVersionId').value = latest.id;
+        // Inyección de campos exactos
+        document.getElementById('editingVersionId').value = targetedVersion.id;
         document.getElementById('vbId').value = char.id;
-        document.getElementById('vbName').value = latest.name;
-        document.getElementById('vbDemo').value = latest.demo || "";
-        document.getElementById('vbImg').value = latest.img;
-        document.getElementById('vbLang').value = latest.lang;
-        document.getElementById('vbSoftware').value = latest.software;
-        document.getElementById('vbDate').value = latest.date;
+        document.getElementById('vbName').value = targetedVersion.name;
+        document.getElementById('vbDemo').value = targetedVersion.demo || "";
+        document.getElementById('vbImg').value = targetedVersion.img;
+        document.getElementById('vbLang').value = targetedVersion.lang;
+        document.getElementById('vbSoftware').value = targetedVersion.software;
+        document.getElementById('vbDate').value = targetedVersion.date;
         document.getElementById('vbGender').value = char.gender;
-        document.getElementById('vbWeb').value = latest.web;
+        document.getElementById('vbWeb').value = targetedVersion.web;
 
-        // Hace scroll suave hasta el formulario para asistir al usuario
-        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        closeModal(); // Cierre automático fluido del modal
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' }); // Desplazamiento inteligente
     };
 
     window.cancelVbEditing = function() {
@@ -411,9 +411,6 @@
 
             const card = document.createElement('article'); card.className = 'card';
             card.innerHTML = `
-                <!-- Botón intuitivo para editar de forma inmediata -->
-                <button class="btn-quick-edit" title="Edit this version data" onclick="startVbEdit('${char.id}')">✏️</button>
-                
                 <div class="card-img-box"><img src="${latest.img}">${audioBoxHtml}</div>
                 <div class="card-body">
                     <span class="meta-id-tag">${char.id}</span><h3 class="card-title">${latest.name}</h3>
@@ -469,6 +466,7 @@
             await _supabase.from('engine_versions').insert({ engine_id: idInput, name: document.getElementById('engName').value, img: document.getElementById('engImg').value, release_date: document.getElementById('engDate').value, official_web: document.getElementById('engWeb').value });
             document.getElementById('engineForm').reset();
             await loadSoftwares();
+            alert("Engine registrado con éxito.");
         } catch (x) { alert(x.message); } finally { btn.disabled = false; btn.innerText = "Register Engine"; }
     });
 
@@ -530,6 +528,7 @@
         document.getElementById('modalTitle').innerText = `${id} - Archival Logs`;
         document.getElementById('modalSubtitle').innerText = `Total alternative configurations: ${c.versions.length}`;
         const list = document.getElementById('modalList'); list.innerHTML = "";
+        
         [...c.versions].reverse().forEach(v => {
             const modalPlayBtnHtml = (v.demo && v.demo.trim() !== "")
                 ? `<button class="modal-play-btn" onclick="playAudio('${v.demo}', this)">▶ Play Demo</button>`
@@ -543,7 +542,10 @@
                         <div class="meta-line"><strong>Software:</strong> ${v.software}</div>
                         <div class="meta-line"><strong>Release Date:</strong> ${v.date} | <strong>Gender:</strong> ${c.gender}</div>
                         <div class="meta-line"><strong>Languages:</strong> ${v.lang}</div>
-                        ${modalPlayBtnHtml}
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
+                            ${modalPlayBtnHtml}
+                            <button class="btn-modal-edit" onclick="startVbEditDirect('${id}', ${v.id})">✏️ Edit This</button>
+                        </div>
                     </div><a href="${v.web}" target="_blank" class="btn-official-web">Official Site ↗</a>
                 </div>`;
         });
@@ -572,7 +574,7 @@
     window.closeModal = function() { document.getElementById('globalModal').style.display = "none"; globalAudio.pause(); };
 
     window.playAudio = function(url, button) {
-        if (globalAudio.src === url && !globalAudio.paused) { globalAudio.pause(); button.innerHTML = "▶"; } 
+        if (globalAudio.src === url && !globalAudio.paused) { globalAudio.pause(); button.innerHTML = button.classList.contains('play-btn') ? "▶" : "▶ Play Demo"; } 
         else {
             document.querySelectorAll('.play-btn, .modal-play-btn').forEach(b => b.innerHTML = b.classList.contains('play-btn') ? "▶" : "▶ Play Demo");
             globalAudio.src = url; globalAudio.play(); button.innerHTML = "⏸";
