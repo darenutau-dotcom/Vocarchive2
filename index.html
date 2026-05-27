@@ -316,12 +316,26 @@
     document.getElementById('voicebankForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnSubmitVb');
-        btn.disabled = true; btn.innerText = "Saving...";
+        btn.disabled = true; 
+        btn.innerText = "Saving...";
+        
         const idInput = document.getElementById('vbId').value.trim().toUpperCase();
         
         try {
-            await _supabase.from('personajes').upsert({ id: idInput, gender: document.getElementById('vbGender').value });
+            // 1. Guardar o actualizar el personaje raíz
+            const { error: charError } = await _supabase
+                .from('personajes')
+                .upsert({ 
+                    id: idInput, 
+                    gender: document.getElementById('vbGender').value 
+                });
             
+            // Si falla el personaje principal, detenemos el proceso
+            if (charError) {
+                throw new Error(`Error en tabla Personajes: ${charError.message}`);
+            }
+            
+            // 2. Construir la estructura de la versión
             const versionPayload = {
                 personaje_id: idInput, 
                 name: document.getElementById('vbName').value, 
@@ -333,19 +347,39 @@
                 web: document.getElementById('vbWeb').value
             };
 
+            // 3. Insertar o Actualizar según el modo del formulario
             if (isEditingVb) {
-                // Inyectamos ID único numérico para sobreescribir la versión exacta seleccionada en el modal
                 versionPayload.id = parseInt(document.getElementById('editingVersionId').value);
-                await _supabase.from('versiones').upsert(versionPayload);
+                
+                const { error: upsertError } = await _supabase
+                    .from('versiones')
+                    .upsert(versionPayload);
+                
+                if (upsertError) throw new Error(`Error al actualizar versión: ${upsertError.message}`);
+                
                 cancelVbEditing();
             } else {
-                await _supabase.from('versiones').insert(versionPayload);
+                const { error: insertError } = await _supabase
+                    .from('versiones')
+                    .insert(versionPayload);
+                
+                if (insertError) throw new Error(`Error al insertar versión: ${insertError.message}`);
+                
                 document.getElementById('voicebankForm').reset();
             }
 
+            // 4. Si todo sale bien, refrescar catálogo local
             await loadVoicebanks();
-            alert("Voicebank procesado correctamente.");
-        } catch (x) { alert(x.message); } finally { btn.disabled = false; btn.innerText = isEditingVb ? "Update Version" : "Register Version"; }
+            alert("¡Voicebank y versión registrados con éxito!");
+
+        } catch (x) { 
+            // Esto ahora sí atrapará cualquier inconveniente de Supabase
+            console.error(x);
+            alert(`No se pudo guardar la versión.\nDetalles: ${x.message}`); 
+        } finally { 
+            btn.disabled = false; 
+            btn.innerText = isEditingVb ? "Update Version" : "Register Version"; 
+        }
     });
 
     // Carga dirigida de datos desde el modal hacia el formulario
