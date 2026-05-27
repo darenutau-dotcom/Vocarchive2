@@ -61,7 +61,7 @@
         .btn-clear-filter { padding: 0 20px; background: #334155; border: 1px solid #475569; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #f1f5f9; cursor: pointer; display: none; }
         .btn-clear-filter:hover { background: #475569; }
         
-        /* CARD GRID GRID SYSTEM */
+        /* CARD GRID SYSTEM */
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
         .card { background: #1e293b; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-height: 480px; position: relative; }
         .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4); border-color: #475569; }
@@ -149,7 +149,6 @@
         <aside class="form-section" id="vbFormContainer">
             <h2 id="vbFormTitle">Upload Voicebank</h2>
             <form id="voicebankForm">
-                <!-- ID de la versión interna oculta de la fila en Supabase para el modo edición -->
                 <input type="hidden" id="editingVersionId" value="">
                 
                 <div class="form-group">
@@ -282,7 +281,7 @@
     let localVbData = {}, sortedVbIds = [], filteredVbIds = [], currentPageVb = 1;
     let localSwData = {}, sortedSwIds = [], filteredSwIds = [], currentPageSw = 1;
 
-    let isEditingVb = false; // Flag global de control de formulario
+    let isEditingVb = false; // Global form flag architecture
 
     const globalAudio = document.getElementById('globalAudioPlayer');
 
@@ -330,16 +329,16 @@
                     gender: document.getElementById('vbGender').value 
                 });
             
-            // Si falla el personaje principal, detenemos el proceso
             if (charError) {
                 throw new Error(`Error en tabla Personajes: ${charError.message}`);
             }
             
             // 2. Construir la estructura de la versión
+            // Corrección crítica: Se envía "" en lugar de null si viene vacío para evitar violar la restricción NOT NULL de tu base de datos
             const versionPayload = {
                 personaje_id: idInput, 
                 name: document.getElementById('vbName').value, 
-                demo: document.getElementById('vbDemo').value.trim() || null,
+                demo: document.getElementById('vbDemo').value.trim() || "",
                 img: document.getElementById('vbImg').value, 
                 lang: document.getElementById('vbLang').value,
                 software: document.getElementById('vbSoftware').value, 
@@ -368,12 +367,11 @@
                 document.getElementById('voicebankForm').reset();
             }
 
-            // 4. Si todo sale bien, refrescar catálogo local
+            // 4. Refrescar catálogo local
             await loadVoicebanks();
             alert("¡Voicebank y versión registrados con éxito!");
 
         } catch (x) { 
-            // Esto ahora sí atrapará cualquier inconveniente de Supabase
             console.error(x);
             alert(`No se pudo guardar la versión.\nDetalles: ${x.message}`); 
         } finally { 
@@ -382,7 +380,7 @@
         }
     });
 
-    // Carga dirigida de datos desde el modal hacia el formulario
+    // Carga de datos dirigida desde el modal hacia los inputs del formulario
     window.startVbEditDirect = function(charId, versionId) {
         const char = localVbData[charId];
         const targetedVersion = char.versions.find(v => v.id === versionId);
@@ -400,7 +398,7 @@
         submitBtn.classList.add('btn-edit-active');
         document.getElementById('btnCancelVbEdit').style.display = "block";
 
-        // Inyección de campos exactos
+        // Inyección de campos específicos en los inputs
         document.getElementById('editingVersionId').value = targetedVersion.id;
         document.getElementById('vbId').value = char.id;
         document.getElementById('vbName').value = targetedVersion.name;
@@ -412,8 +410,8 @@
         document.getElementById('vbGender').value = char.gender;
         document.getElementById('vbWeb').value = targetedVersion.web;
 
-        closeModal(); // Cierre automático fluido del modal
-        container.scrollIntoView({ behavior: 'smooth', block: 'center' }); // Desplazamiento inteligente
+        closeModal(); 
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
     };
 
     window.cancelVbEditing = function() {
