@@ -158,6 +158,11 @@
         .modal-title { font-size: 1.5rem; margin-bottom: 6px; color: #ffffff; font-weight: 800; letter-spacing: -0.02em; }
         .modal-subtitle { font-size: 0.85rem; color: #71717a; margin-bottom: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; }
         
+        /* ESTILOS AUDIO NATIVO OSCURO */
+        audio::-webkit-media-controls-panel { background-color: #1a1a22; }
+        audio::-webkit-media-controls-current-time-display,
+        audio::-webkit-media-controls-time-remaining-display { color: #ffffff; }
+
         .version-item { background: #0b0b0e; border: 1px solid rgba(255, 255, 255, 0.04); padding: 20px; border-radius: 12px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
         .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.04); }
         .version-details { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; padding-right: 120px; }
@@ -165,7 +170,7 @@
         .modal-play-btn { background: #0ea5e9; color: white; border: none; padding: 7px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; width: fit-content; margin-top: 4px; transition: background 0.2s; }
         .modal-play-btn:hover { background: #0284c7; }
         
-        .btn-modal-edit { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: #a1a1aa; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; cursor: pointer; margin-top: 4px; margin-left: 8px; transition: all 0.2s; }
+        .btn-modal-edit { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: #a1a1aa; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; cursor: pointer; margin-top: 4px; transition: all 0.2s; }
         .btn-modal-edit:hover { background: rgba(255, 255, 255, 0.04); color: white; border-color: rgba(255, 255, 255, 0.2); }
 
         .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.08); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 8px; transition: all 0.2s; }
@@ -212,14 +217,6 @@
             background: #38bdf8;
             box-shadow: 0 15px 25px rgba(14, 165, 233, 0.4);
         }
-
-        audio::-webkit-media-controls-panel {
-    background-color: #1a1a22;
-}
-audio::-webkit-media-controls-current-time-display,
-audio::-webkit-media-controls-time-remaining-display {
-    color: #ffffff;
-}
     </style>
 </head>
 <body>
@@ -268,6 +265,10 @@ audio::-webkit-media-controls-time-remaining-display {
                     <input type="text" id="vbSoftware" placeholder="e.g., VOCALOID6, Synthesizer V" required>
                 </div>
                 <div class="form-group">
+                    <label for="vbGenres">Optimal Genres / Styles (Comma separated):</label>
+                    <input type="text" id="vbGenres" placeholder="e.g., Pop, Metal, J-Rock">
+                </div>
+                <div class="form-group">
                     <label for="vbDate">Release Date:</label>
                     <input type="date" id="vbDate" required>
                 </div>
@@ -290,7 +291,7 @@ audio::-webkit-media-controls-time-remaining-display {
 
         <main class="catalog-section">
             <div class="search-container">
-                <input type="text" id="searchBarVb" class="search-bar" placeholder="Search by character, version, languages, engines...">
+                <input type="text" id="searchBarVb" class="search-bar" placeholder="Search by character, version, languages, engines, genres...">
                 <button id="btnClearFilterVb" class="btn-clear-filter" onclick="clearFilter('vb')">Clear Filter</button>
             </div>
             <div id="catalogGridVb" class="catalog-grid"></div>
@@ -422,7 +423,8 @@ audio::-webkit-media-controls-time-remaining-display {
 
     async function loadVoicebanks() {
         await loadGlobalRatings();
-        const { data, error } = await _supabase.from('personajes').select(`id, gender, versiones ( id, name, demo, img, lang, software, date, web, created_at )`);
+        // Agregamos 'genres' al select de versiones para jalarlo de Supabase
+        const { data, error } = await _supabase.from('personajes').select(`id, gender, versiones ( id, name, demo, img, lang, software, genres, date, web, created_at )`);
         if (error) return console.error(error.message);
 
         localVbData = {};
@@ -451,7 +453,8 @@ audio::-webkit-media-controls-time-remaining-display {
                 personaje_id: idInput, name: document.getElementById('vbName').value, 
                 demo: document.getElementById('vbDemo').value.trim() || "",
                 img: document.getElementById('vbImg').value, lang: document.getElementById('vbLang').value,
-                software: document.getElementById('vbSoftware').value, date: document.getElementById('vbDate').value, web: document.getElementById('vbWeb').value
+                software: document.getElementById('vbSoftware').value, genres: document.getElementById('vbGenres').value, 
+                date: document.getElementById('vbDate').value, web: document.getElementById('vbWeb').value
             };
 
             if (isEditingVb) {
@@ -482,6 +485,7 @@ audio::-webkit-media-controls-time-remaining-display {
         document.getElementById('vbImg').value = targetedVersion.img;
         document.getElementById('vbLang').value = targetedVersion.lang;
         document.getElementById('vbSoftware').value = targetedVersion.software;
+        document.getElementById('vbGenres').value = targetedVersion.genres || "";
         document.getElementById('vbDate').value = targetedVersion.date;
         document.getElementById('vbGender').value = char.gender;
         document.getElementById('vbWeb').value = targetedVersion.web;
@@ -531,17 +535,17 @@ audio::-webkit-media-controls-time-remaining-display {
         document.getElementById('btnClearFilterVb').style.display = query ? "block" : "none";
         filteredVbIds = sortedVbIds.filter(id => {
             const c = localVbData[id];
-            return c.id.toLowerCase().includes(query) || c.gender.toLowerCase().includes(query) || c.versions.some(v => v.name.toLowerCase().includes(query) || v.software.toLowerCase().includes(query) || v.lang.toLowerCase().includes(query));
+            return c.id.toLowerCase().includes(query) || c.gender.toLowerCase().includes(query) || c.versions.some(v => v.name.toLowerCase().includes(query) || v.software.toLowerCase().includes(query) || v.lang.toLowerCase().includes(query) || (v.genres && v.genres.toLowerCase().includes(query)));
         });
         currentPageVb = 1; renderCatalogVb(currentPageVb);
     }
+    
     window.filterTagVb = function(t) { 
-    const searchBar = document.getElementById('searchBarVb');
-    searchBar.value = t; 
-    applyFilterVb(); 
-    // Suave scroll hacia arriba para que el usuario vea el catálogo filtrado inmediatamente
-    searchBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
-};
+        const searchBar = document.getElementById('searchBarVb');
+        searchBar.value = t; 
+        applyFilterVb(); 
+        searchBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
     document.getElementById('searchBarVb').addEventListener('input', applyFilterVb);
 
     async function loadSoftwares() {
@@ -618,16 +622,21 @@ audio::-webkit-media-controls-time-remaining-display {
 
     // VENTANA MODAL DE VOICEBANKS CON CAPA DE LOCAL STORAGE COMO PRIMER CONTROL DE VOTO
     window.openModalVb = function(id) {
+        // Pausamos el audio global inmediatamente para evitar caos auditivo en el modal
+        globalAudio.pause();
+
         const c = localVbData[id]; const modal = document.getElementById('globalModal');
         document.getElementById('modalTitle').innerText = `${id} - Archival Logs`;
         document.getElementById('modalSubtitle').innerText = `Total alternative configurations: ${c.versions.length}`;
         const list = document.getElementById('modalList'); list.innerHTML = "";
         
         [...c.versions].reverse().forEach(v => {
+            // El reproductor ahora es nativo, limpio y oscuro de forma horizontal
             const modalPlayBtnHtml = (v.demo && v.demo.trim() !== "") ? `
-    <div style="margin-top: 10px; width: 100%; max-width: 300px;">
-        <audio controls src="${v.demo}" style="width: 100%; height: 32px; border-radius: 8px; background: #1a1a22;"></audio>
-    </div>` : '';
+                <div style="margin-top: 6px; width: 100%; max-width: 280px;">
+                    <audio controls src="${v.demo}" style="width: 100%; height: 32px; border-radius: 8px; background: #1a1a22;"></audio>
+                </div>` : '';
+                
             const rateData = cachedRatings[v.id] || { quality: 0, clarity: 0, usability: 0, versatility: 0, global: "0.0", count: 0 };
 
             // Control de LocalStorage local: ¿Ya votó el navegador en esta sesión histórica?
@@ -635,23 +644,32 @@ audio::-webkit-media-controls-time-remaining-display {
             const btnText = hasVotedLocal ? "[ You already evaluated this bank ]" : "[ Evaluate this bank ]";
             const btnDisabledAttr = hasVotedLocal ? "disabled" : "";
 
+            // Lógica inteligente para cambiar el texto del botón si es un repositorio de descarga o motor UTAU
+            const isDownloadLink = v.web.includes('drive.google') || v.web.includes('mega.nz') || v.web.includes('github') || v.software.toLowerCase().includes('utau');
+            const actionButtonText = isDownloadLink ? "📥 Download Voicebank" : "🌐 Official Site ↗";
+
+            // Renderizado de las especificaciones usando componentes interactivos (Tags) en lugar de texto plano
             list.innerHTML += `
                 <div class="version-item" style="flex-direction: column; gap: 12px;">
                     <div style="display: flex; gap: 20px; width: 100%;">
                         <img class="version-img" src="${v.img}">
                         <div class="version-details">
                             <div class="version-name">${v.name}</div>
-                            <div class="meta-line"><strong>Software:</strong> ${v.software}</div>
+                            
+                            <div class="tags-container" style="margin-bottom: 4px; margin-top: 2px;">
+                                ${v.software.split(',').map(s => `<span class="tag tag-software" onclick="event.stopPropagation(); closeModal(); filterTagVb('${s.trim()}')">${s.trim()}</span>`).join('')}
+                                ${v.lang.split(',').map(l => `<span class="tag" onclick="event.stopPropagation(); closeModal(); filterTagVb('${l.trim()}')">${l.trim()}</span>`).join('')}
+                                ${v.genres ? v.genres.split(',').map(g => `<span class="tag" style="background: rgba(168, 85, 247, 0.06); border-color: rgba(168, 85, 247, 0.15); color: #c084fc;" onclick="event.stopPropagation(); closeModal(); filterTagVb('${g.trim()}')">${g.trim()}</span>`).join('') : ''}
+                            </div>
+
                             <div class="meta-line"><strong>Release Date:</strong> ${v.date} | <strong>Gender:</strong> ${c.gender}</div>
-                            <div class="meta-line"><strong>Languages:</strong> ${v.lang}</div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px;">
+                            
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; width: 100%;">
                                 ${modalPlayBtnHtml}
-                                <button class="btn-modal-edit" onclick="startVbEditDirect('${id}', ${v.id})">✏️ Edit This</button>
+                                <button class="btn-modal-edit" style="height: 32px; margin-top: 6px;" onclick="startVbEditDirect('${id}', ${v.id})">✏️ Edit This</button>
                             </div>
                         </div>
-                        <a href="${v.web}" target="_blank" class="btn-official-web">
-    ${(v.web.includes('drive.google') || v.web.includes('mega.nz') || v.web.includes('github') || v.software.toLowerCase().includes('utau')) ? '📥 Download Voicebank' : '🌐 Official Site ↗'}
-</a>
+                        <a href="${v.web}" target="_blank" class="btn-official-web">${actionButtonText}</a>
                     </div>
                     
                     <div class="ratings-panel" id="ratePanel-${v.id}">
