@@ -422,18 +422,35 @@
     }
 
     async function loadVoicebanks() {
-        await loadGlobalRatings();
-        // Agregamos 'genres' al select de versiones para jalarlo de Supabase
-        const { data, error } = await _supabase.from('personajes').select(`id, gender, versiones ( id, name, demo, img, lang, software, genres, date, web, created_at )`);
-        if (error) return console.error(error.message);
+    await loadGlobalRatings();
+    
+    // NOTA: Asegúrate de que 'software' sea el nombre real de la columna en tu Supabase.
+    const { data, error } = await _supabase
+        .from('personajes')
+        .select(`id, gender, versiones ( id, name, demo, img, lang, software, date, web, created_at )`);
+    
+    if (error) {
+        // Esto te mostrará en pantalla si 'software' u otra columna está mal escrita
+        alert("Error de Supabase: " + error.message);
+        return console.error(error.message);
+    }
 
-        localVbData = {};
-        data.forEach(char => {
-            if(char.versiones && char.versiones.length > 0) {
-                const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
-                let displayGender = (char.gender === "Femenino" || char.gender === "Female") ? "Female" : (char.gender === "Masculino" || char.gender === "Male" ? "Male" : "Other");
-                localVbData[char.id] = { id: char.id, gender: displayGender, versions: sortedVersions, latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) };
-            }
+    localVbData = {};
+    data.forEach(char => {
+        if(char.versiones && char.versiones.length > 0) {
+            const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
+            let displayGender = (char.gender === "Femenino" || char.gender === "Female") ? "Female" : (char.gender === "Masculino" || char.gender === "Male" ? "Male" : "Other");
+            localVbData[char.id] = { 
+                id: char.id, 
+                gender: displayGender, 
+                versions: sortedVersions, 
+                latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) 
+            };
+        }
+    });
+    sortedVbIds = Object.keys(localVbData).sort((a, b) => localVbData[b].latestReleaseDate - localVbData[a].latestReleaseDate);
+    applyFilterVb();
+}
         });
         sortedVbIds = Object.keys(localVbData).sort((a, b) => localVbData[b].latestReleaseDate - localVbData[a].latestReleaseDate);
         applyFilterVb();
