@@ -422,35 +422,29 @@
     }
 
     async function loadVoicebanks() {
-    await loadGlobalRatings();
-    
-    // NOTA: Asegúrate de que 'software' sea el nombre real de la columna en tu Supabase.
-    const { data, error } = await _supabase
-        .from('personajes')
-        .select(`id, gender, versiones ( id, name, demo, img, lang, software, date, web, created_at )`);
-    
-    if (error) {
-        // Esto te mostrará en pantalla si 'software' u otra columna está mal escrita
-        alert("Error de Supabase: " + error.message);
-        return console.error(error.message);
-    }
-
-    localVbData = {};
-    data.forEach(char => {
-        if(char.versiones && char.versiones.length > 0) {
-            const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
-            let displayGender = (char.gender === "Femenino" || char.gender === "Female") ? "Female" : (char.gender === "Masculino" || char.gender === "Male" ? "Male" : "Other");
-            localVbData[char.id] = { 
-                id: char.id, 
-                gender: displayGender, 
-                versions: sortedVersions, 
-                latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) 
-            };
+        await loadGlobalRatings();
+        
+        const { data, error } = await _supabase
+            .from('personajes')
+            .select(`id, gender, versiones ( id, name, demo, img, lang, software, date, web, created_at )`);
+        
+        if (error) {
+            alert("Error de Supabase: " + error.message);
+            return console.error(error.message);
         }
-    });
-    sortedVbIds = Object.keys(localVbData).sort((a, b) => localVbData[b].latestReleaseDate - localVbData[a].latestReleaseDate);
-    applyFilterVb();
-}
+
+        localVbData = {};
+        data.forEach(char => {
+            if(char.versiones && char.versiones.length > 0) {
+                const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
+                let displayGender = (char.gender === "Femenino" || char.gender === "Female") ? "Female" : (char.gender === "Masculino" || char.gender === "Male" ? "Male" : "Other");
+                localVbData[char.id] = { 
+                    id: char.id, 
+                    gender: displayGender, 
+                    versions: sortedVersions, 
+                    latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) 
+                };
+            }
         });
         sortedVbIds = Object.keys(localVbData).sort((a, b) => localVbData[b].latestReleaseDate - localVbData[a].latestReleaseDate);
         applyFilterVb();
@@ -639,7 +633,6 @@
 
     // VENTANA MODAL DE VOICEBANKS CON CAPA DE LOCAL STORAGE COMO PRIMER CONTROL DE VOTO
     window.openModalVb = function(id) {
-        // Pausamos el audio global inmediatamente para evitar caos auditivo en el modal
         globalAudio.pause();
 
         const c = localVbData[id]; const modal = document.getElementById('globalModal');
@@ -648,7 +641,6 @@
         const list = document.getElementById('modalList'); list.innerHTML = "";
         
         [...c.versions].reverse().forEach(v => {
-            // El reproductor ahora es nativo, limpio y oscuro de forma horizontal
             const modalPlayBtnHtml = (v.demo && v.demo.trim() !== "") ? `
                 <div style="margin-top: 6px; width: 100%; max-width: 280px;">
                     <audio controls src="${v.demo}" style="width: 100%; height: 32px; border-radius: 8px; background: #1a1a22;"></audio>
@@ -656,16 +648,13 @@
                 
             const rateData = cachedRatings[v.id] || { quality: 0, clarity: 0, usability: 0, versatility: 0, global: "0.0", count: 0 };
 
-            // Control de LocalStorage local: ¿Ya votó el navegador en esta sesión histórica?
             const hasVotedLocal = localStorage.getItem(`voted_v_${v.id}`);
             const btnText = hasVotedLocal ? "[ You already evaluated this bank ]" : "[ Evaluate this bank ]";
             const btnDisabledAttr = hasVotedLocal ? "disabled" : "";
 
-            // Lógica inteligente para cambiar el texto del botón si es un repositorio de descarga o motor UTAU
             const isDownloadLink = v.web.includes('drive.google') || v.web.includes('mega.nz') || v.web.includes('github') || v.software.toLowerCase().includes('utau');
             const actionButtonText = isDownloadLink ? "📥 Download Voicebank" : "🌐 Official Site ↗";
 
-            // Renderizado de las especificaciones usando componentes interactivos (Tags) en lugar de texto plano
             list.innerHTML += `
                 <div class="version-item" style="flex-direction: column; gap: 12px;">
                     <div style="display: flex; gap: 20px; width: 100%;">
@@ -752,7 +741,6 @@
             </div>`;
     };
 
-    // ENVÍO DE CALIFICACIÓN CON RESTRICCIÓN DE IP ABSOLUTA
     window.submitRating = async function(versionId) {
         const actionBtn = document.getElementById(`btnVote-${versionId}`);
         actionBtn.disabled = true;
@@ -760,7 +748,6 @@
 
         let clientIp = "0.0.0.0";
         try {
-            // Obtenemos la IP pública del usuario mediante un servicio seguro y rápido
             const res = await fetch('https://api.ipify.org?format=json');
             const data = await res.json();
             if(data && data.ip) clientIp = data.ip;
@@ -773,7 +760,6 @@
         const u = parseInt(document.getElementById(`sl-u-${versionId}`).value);
         const v = parseInt(document.getElementById(`sl-v-${versionId}`).value);
 
-        // Envío a Supabase con la IP incluida
         const { error } = await _supabase.from('calificaciones').insert({
             version_id: versionId,
             quality: q,
@@ -787,27 +773,18 @@
             actionBtn.disabled = false;
             actionBtn.innerText = "[ Submit Evaluation ]";
             
-            // Si Supabase devuelve error de clave única (Código 23505), significa que esa IP ya existía para esa versión
             if(error.code === "23505") {
                 alert("🔒 Error de Seguridad: Tu dirección IP ya ha registrado un voto para este banco de voz hoy.");
-                localStorage.setItem(`voted_v_${versionId}`, "true"); // Lo marcamos localmente para evitar que siga intentando
+                localStorage.setItem(`voted_v_${versionId}`, "true"); 
                 reloadModalAfterVote();
             } else {
                 alert("No se pudo guardar: " + error.message);
             }
         } else {
-            // Éxito: Guardamos marca local y recargamos
             localStorage.setItem(`voted_v_${versionId}`, "true");
             alert("¡Evaluación técnica procesada y firmada con éxito!");
             reloadModalAfterVote();
         }
-    };
-
-    window.reloadModalAfterVote = async function() {
-        const titleText = document.getElementById('modalTitle').innerText;
-        const charId = titleText.split(' - ')[0];
-        await loadVoicebanks();
-        if(charId) openModalVb(charId);
     };
 
     window.openModalSw = function(id) {
@@ -848,6 +825,14 @@
         openModalVb(randomCharacterId);
     };
 
+    window.reloadModalAfterVote = async function() {
+        const titleText = document.getElementById('modalTitle').innerText;
+        const charId = titleText.split(' - ')[0];
+        await loadVoicebanks();
+        if(charId) openModalVb(charId);
+    };
+
+    // Inicialización al cargar la página
     loadVoicebanks();
     loadSoftwares();
 </script>
