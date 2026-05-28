@@ -52,8 +52,7 @@
         .tab-view.active { display: grid; }
 
         /* LAYOUT ARCHITECTURE */
-        .main-layout { grid-template-columns: 340px 1fr; gap: 35px; margin-top: 20px; }
-        @media (max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
+        .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; margin-top: 20px; }
 
         /* FORMULARIOS ESTILO PANEL DE EDICIÓN DE SOFTWARE */
         .form-section { 
@@ -93,7 +92,7 @@
         .btn-clear-filter:hover { background: rgba(255, 255, 255, 0.04); }
         
         /* TARJETAS PREMIUM */
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
         
         .card { 
             background: #121216; 
@@ -216,6 +215,84 @@
             transform: translateY(-3px) scale(1.03);
             background: #38bdf8;
             box-shadow: 0 15px 25px rgba(14, 165, 233, 0.4);
+        }
+
+        /* --- ADAPTACIÓN ULTRA PARA DISPOSITIVOS MÓVILES (MÉDIAS QUERIES) --- */
+        @media (max-width: 900px) { 
+            body {
+                padding-top: 140px; /* Da espacio extra ya que la barra de navegación en dos filas es más alta */
+            }
+            .main-layout { 
+                grid-template-columns: 1fr; /* Coloca el formulario arriba y el catálogo abajo */
+                gap: 20px;
+            }
+            .form-section {
+                position: relative !important; /* Desactiva el modo flotante lateral fijo */
+                top: 0 !important;
+                box-shadow: none;
+            }
+            .nav-container {
+                flex-direction: column; /* Centra el logo arriba y los botones de vistas abajo */
+                gap: 12px;
+                padding: 12px 20px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .modal-content {
+                padding: 16px;
+                max-height: 90vh;
+            }
+            .modal-title {
+                font-size: 1.25rem;
+            }
+            /* Reacomoda los elementos de la versión de horizontal a vertical */
+            .version-item > div {
+                flex-direction: column !important;
+                gap: 16px !important;
+                text-align: center;
+            }
+            .version-img {
+                width: 80px;
+                height: 80px;
+                margin: 0 auto;
+                display: block;
+            }
+            .version-details {
+                padding-right: 0 !important; /* Libera el espacio reservado del botón absoluto */
+                align-items: center;
+            }
+            .version-details .tags-container {
+                justify-content: center; /* Alinea los tags al centro del teléfono */
+            }
+            .version-details audio {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            /* Convierte el link externo en un botón de ancho completo abajo del todo */
+            .btn-official-web {
+                position: relative !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                display: block;
+                width: 100%;
+                text-align: center;
+                margin-top: 8px;
+                box-sizing: border-box;
+            }
+            .ratings-panel {
+                max-width: 100% !important;
+                width: 100%;
+            }
+            body {
+                padding-bottom: 90px; /* Previene que el botón flotante tape el final de la grid */
+            }
+            .btn-floating-feedback {
+                padding: 10px 16px;
+                font-size: 0.8rem;
+                bottom: 15px;
+                right: 15px;
+            }
         }
     </style>
 </head>
@@ -426,7 +503,7 @@ async function loadVoicebanks() {
     
     const { data, error } = await _supabase
         .from('personajes')
-        .select(`id, gender, versiones ( id, name, demo, img, lang, software, genres, date, web, created_at )`); // <-- AQUÍ SE AGREGÓ GENRES
+        .select(`id, gender, versiones ( id, name, demo, img, lang, software, genres, date, web, created_at )`);
     
     if (error) {
         alert("Error de Supabase: " + error.message);
@@ -531,8 +608,8 @@ async function loadVoicebanks() {
                     <h3 class="card-title">${latest.name}</h3>
                     <div class="meta-line" style="font-size: 0.75rem; color:#71717a; margin-bottom: 2px;">Update: ${latest.date}${ratingTextHtml}</div>
                     <div class="tags-container">
-                        ${latest.lang.split(',').slice(0,2).map(l => `<span class="tag" onclick="event.stopPropagation(); filterTagVb('${l.trim()}')">${l.trim()}</span>`).join('')}
-                        ${latest.software.split(',').slice(0,1).map(s => `<span class="tag tag-software" onclick="event.stopPropagation(); filterTagVb('${s.trim()}')">${s.trim()}</span>`).join('')}
+                        ${latest.lang.split(',').slice(0,2).map(l => `<span class="tag" onclick="event.stopPropagation(); filterTagVb('${l.trim()}');">${l.trim()}</span>`).join('')}
+                        ${latest.software.split(',').slice(0,1).map(s => `<span class="tag tag-software" onclick="event.stopPropagation(); filterTagVb('${s.trim()}');">${s.trim()}</span>`).join('')}
                     </div>
                 </div>
                 <div class="card-action-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>`;
@@ -631,7 +708,7 @@ async function loadVoicebanks() {
         else { document.getElementById('searchBarSw').value = ""; applyFilterSw(); }
     };
 
-    // VENTANA MODAL DE VOICEBANKS CON CAPA DE LOCAL STORAGE COMO PRIMER CONTROL DE VOTO
+    // VENTANA MODAL DE VOICEBANKS
     window.openModalVb = function(id) {
         globalAudio.pause();
 
@@ -663,9 +740,9 @@ async function loadVoicebanks() {
                             <div class="version-name">${v.name}</div>
                             
                             <div class="tags-container" style="margin-bottom: 4px; margin-top: 2px;">
-                                ${v.software.split(',').map(s => `<span class="tag tag-software" onclick="event.stopPropagation(); closeModal(); filterTagVb('${s.trim()}')">${s.trim()}</span>`).join('')}
-                                ${v.lang.split(',').map(l => `<span class="tag" onclick="event.stopPropagation(); closeModal(); filterTagVb('${l.trim()}')">${l.trim()}</span>`).join('')}
-                                ${v.genres ? v.genres.split(',').map(g => `<span class="tag" style="background: rgba(168, 85, 247, 0.06); border-color: rgba(168, 85, 247, 0.15); color: #c084fc;" onclick="event.stopPropagation(); closeModal(); filterTagVb('${g.trim()}')">${g.trim()}</span>`).join('') : ''}
+                                ${v.software.split(',').map(s => `<span class="tag tag-software" onclick="event.stopPropagation(); closeModal(); filterTagVb('${s.trim()}');">${s.trim()}</span>`).join('')}
+                                ${v.lang.split(',').map(l => `<span class="tag" onclick="event.stopPropagation(); closeModal(); filterTagVb('${l.trim()}');">${l.trim()}</span>`).join('')}
+                                ${v.genres ? v.genres.split(',').map(g => `<span class="tag" style="background: rgba(168, 85, 247, 0.06); border-color: rgba(168, 85, 247, 0.15); color: #c084fc;" onclick="event.stopPropagation(); closeModal(); filterTagVb('${g.trim()}');">${g.trim()}</span>`).join('') : ''}
                             </div>
 
                             <div class="meta-line"><strong>Release Date:</strong> ${v.date} | <strong>Gender:</strong> ${c.gender}</div>
