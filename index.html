@@ -8,20 +8,44 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
         
-        /* Premium Dark Theme Base */
-        body { background-color: #0f172a; color: #f1f5f9; padding-top: 80px; padding-bottom: 40px; }
+        /* FONDO GENERAL ULTRA OSCURO Y CONSISTENTE */
+        body { 
+            background-color: #0b0b0e; /* Un negro profundo premium (Estilo Synthesizer V Pro) */
+            color: #e4e4e7; 
+            padding-top: 80px; 
+            padding-bottom: 40px; 
+        }
         
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
         
-        /* NAVIGATION BAR */
-        .navbar { position: fixed; top: 0; left: 0; width: 100%; background: #1e293b; border-bottom: 1px solid #334155; z-index: 2000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; }
-        .nav-logo { font-size: 1.3rem; font-weight: 800; color: #ffffff; letter-spacing: -0.025em; }
-        .nav-logo span { color: #e11d48; }
-        .nav-menu { display: flex; gap: 15px; list-style: none; }
-        .nav-btn { background: transparent; border: none; color: #94a3b8; font-size: 0.95rem; font-weight: 700; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .nav-btn:hover { color: #ffffff; background: #334155; }
-        .nav-btn.active { color: #ffffff; background: #e11d48; }
+        /* BARRA DE NAVEGACIÓN INTEGRADA Y MINIMALISTA */
+        .navbar { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            background: rgba(11, 11, 14, 0.85); /* Semitransparente para un look moderno */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04); 
+            z-index: 2000; 
+            backdrop-filter: blur(12px); /* Efecto esmerilado de gama alta */
+        }
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; }
+        .nav-logo { font-size: 1.25rem; font-weight: 800; color: #ffffff; letter-spacing: -0.025em; }
+        .nav-logo span { color: #0ea5e9; } /* Cambiado a azul estético para combinar con el ecosistema */
+        .nav-menu { display: flex; gap: 10px; list-style: none; }
+        .nav-btn { 
+            background: transparent; 
+            border: none; 
+            color: #a1a1aa; 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .nav-btn:hover { color: #ffffff; background: rgba(255, 255, 255, 0.04); }
+        .nav-btn.active { color: #ffffff; background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.3); }
 
         /* TABS VIEWS CONTROLLER */
         .tab-view { display: none; }
@@ -31,62 +55,70 @@
         .main-layout { grid-template-columns: 340px 1fr; gap: 35px; margin-top: 20px; }
         @media (max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
 
-        /* FORMS */
-        .form-section { background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); height: fit-content; position: sticky; top: 100px; transition: border-color 0.3s; }
-        .form-section.editing-mode { border-color: #0ea5e9; box-shadow: 0 10px 20px -3px rgba(14, 165, 233, 0.2); }
-        .form-section h2 { margin-bottom: 20px; font-size: 1.25rem; color: #ffffff; font-weight: 700; border-bottom: 2px solid #334155; padding-bottom: 8px; }
-        .form-section.editing-mode h2 { color: #38bdf8; border-bottom-color: #0ea5e9; }
+        /* FORMULARIOS ESTILO PANEL DE EDICIÓN DE SOFTWARE */
+        .form-section { 
+            background: #121216; /* Gris carbón muy sutil */
+            padding: 25px; 
+            border-radius: 16px; 
+            border: 1px solid rgba(255, 255, 255, 0.04); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            height: fit-content; 
+            position: sticky; 
+            top: 100px; 
+            transition: all 0.3s; 
+        }
+        .form-section.editing-mode { border-color: #0ea5e9; box-shadow: 0 10px 25px rgba(14, 165, 233, 0.1); }
+        .form-section h2 { margin-bottom: 20px; font-size: 1.15rem; color: #ffffff; font-weight: 700; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; letter-spacing: -0.01em; }
+        .form-section.editing-mode h2 { color: #38bdf8; border-bottom-color: rgba(14, 165, 233, 0.3); }
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-        .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #475569; border-radius: 6px; font-size: 0.9rem; color: #ffffff; transition: all 0.2s; background-color: #0f172a; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #e11d48; background-color: #0f172a; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25); }
-        .form-section.editing-mode .form-group input:focus, .form-section.editing-mode .form-group select:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25); }
-        .form-group input::placeholder { color: #475569; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-group input, .form-group select { width: 100%; padding: 11px 14px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; font-size: 0.9rem; color: #ffffff; transition: all 0.2s; background-color: #1a1a22; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #0ea5e9; background-color: #1a1a22; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
+        .form-group input::placeholder { color: #52525b; }
         
-        .btn-submit { width: 100%; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
-        .btn-submit:hover { background: #be123c; }
-        .btn-submit:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+        .btn-submit { width: 100%; padding: 12px; background: #0ea5e9; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
+        .btn-submit:hover { background: #0284c7; transform: translateY(-1px); }
+        .btn-submit:disabled { background: #27272a; color: #52525b; cursor: not-allowed; transform: none; }
         .btn-submit.btn-edit-active { background: #0ea5e9; }
         .btn-submit.btn-edit-active:hover { background: #0284c7; }
         
-        .btn-submit.btn-engine-active { background: #e11d48; }
-        .btn-submit.btn-engine-active:hover { background: #be123c; }
+        .btn-submit.btn-engine-active { background: #0ea5e9; }
+        .btn-submit.btn-engine-active:hover { background: #0284c7; }
         
-        .btn-cancel-edit { display: none; width: 100%; padding: 10px; background: #334155; color: #cbd5e1; border: 1px solid #475569; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; margin-top: 8px; text-align: center; transition: all 0.2s; }
-        .btn-cancel-edit:hover { background: #475569; color: #ffffff; }
+        .btn-cancel-edit { display: none; width: 100%; padding: 10px; background: transparent; color: #a1a1aa; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; margin-top: 8px; text-align: center; transition: all 0.2s; }
+        .btn-cancel-edit:hover { background: rgba(255, 255, 255, 0.04); color: #ffffff; }
 
         /* SEARCH & CATALOGS */
         .catalog-section { display: flex; flex-direction: column; gap: 25px; }
         .search-container { display: flex; gap: 10px; width: 100%; }
-        .search-bar { flex-grow: 1; padding: 14px 24px; border: 1px solid #334155; border-radius: 8px; font-size: 0.95rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background: #1e293b; color: #ffffff; transition: all 0.2s; }
-        .search-bar:focus { outline: none; border-color: #e11d48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25); }
-        .search-bar::placeholder { color: #64748b; }
-        .btn-clear-filter { padding: 0 20px; background: #334155; border: 1px solid #475569; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #f1f5f9; cursor: pointer; display: none; }
-        .btn-clear-filter:hover { background: #475569; }
+        .search-bar { flex-grow: 1; padding: 14px 24px; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; font-size: 0.95rem; box-shadow: 0 4px 20px rgba(0,0,0,0.3); background: #121216; color: #ffffff; transition: all 0.2s; }
+        .search-bar:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
+        .search-bar::placeholder { color: #42424a; }
+        .btn-clear-filter { padding: 0 20px; background: #1a1a22; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 0.85rem; font-weight: 600; color: #f4f4f5; cursor: pointer; display: none; }
+        .btn-clear-filter:hover { background: rgba(255, 255, 255, 0.04); }
         
-        /* PREMIUM CARD GRID SYSTEM (DREAMTONICS STYLE) */
+        /* TARJETAS PREMIUM PERFECTAMENTE ACOPLADAS */
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
         
         .card { 
-            background: #1e1e24; 
+            background: #121216; /* Combinado perfectamente con los inputs y paneles */
             border-radius: 16px; 
             overflow: hidden; 
             display: flex; 
             align-items: center; 
             gap: 16px;
             padding: 16px; 
-            border: 1px solid rgba(255, 255, 255, 0.05); 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+            border: 1px solid rgba(255, 255, 255, 0.04); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
-            min-height: unset; 
             position: relative; 
             cursor: pointer;
         }
         .card:hover { 
             transform: translateY(-2px); 
-            background: #25252d; 
+            background: #1a1a22; /* Se aclara ligeramente en hover de forma elegante */
             border-color: rgba(14, 165, 233, 0.3); 
-            box-shadow: 0 12px 30px rgba(0,0,0,0.4); 
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6); 
         }
 
         /* COMPACT IMAGE CONTAINER */
@@ -95,74 +127,72 @@
             height: 75px; 
             border-radius: 12px; 
             overflow: hidden; 
-            background: #0f172a; 
+            background: #0b0b0e; 
             position: relative; 
             flex-shrink: 0; 
-            border-bottom: none; 
         }
         .card-img-box img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* HOVER PLAY BUTTON (YAMAHA STYLE) */
-        .audio-player-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+        /* HOVER PLAY BUTTON */
+        .audio-player-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 11, 14, 0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
         .card-img-box:hover .audio-player-box { opacity: 1; }
-        .play-btn { background: #ffffff; border: none; color: #0f172a; width: 32px; height: 32px; font-size: 0.9rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .play-btn { background: #ffffff; border: none; color: #0b0b0e; width: 32px; height: 32px; font-size: 0.9rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: transform 0.2s; }
         .play-btn:hover { transform: scale(1.1); background: #0ea5e9; color: white; }
 
         /* CARDS TEXT CONTENT */
         .card-body { padding: 0; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
-        .meta-id-tag { font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-        .card-title { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 4px; line-height: 1.2; height: auto; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .meta-line { font-size: 0.8rem; color: #8e8e93; margin-bottom: 0; }
-        .meta-line strong { color: #cbd5e1; display: none; } /* Ocultar etiquetas repetitivas para un look ultra limpio */
+        .meta-id-tag { font-size: 0.7rem; color: #71717a; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .card-title { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 4px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .meta-line { font-size: 0.8rem; color: #a1a1aa; margin-bottom: 0; }
+        .meta-line strong { display: none; } 
         
         /* TAGS & SUB-INFOS */
-        .tags-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; margin-bottom: 0; }
-        .tag { font-size: 0.65rem; font-weight: 700; padding: 2px 6px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; text-transform: uppercase; color: #a1a1aa; cursor: pointer; transition: all 0.15s; }
+        .tags-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .tag { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 4px; text-transform: uppercase; color: #a1a1aa; cursor: pointer; transition: all 0.15s; }
         .tag:hover { background: #0ea5e9; color: white; border-color: #0ea5e9; }
         .tag-software { background: rgba(14, 165, 233, 0.06); border-color: rgba(14, 165, 233, 0.15); color: #38bdf8; }
         .tag-software:hover { background: #0ea5e9; color: white; }
 
         /* LICENSE CONTROLS */
-        .tag-free { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .tag-free { background: rgba(34, 197, 94, 0.06); border-color: rgba(34, 197, 94, 0.15); color: #4ade80; }
         .tag-free:hover { background: #22c55e; color: white; }
-        .tag-paid { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .tag-paid { background: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.15); color: #f87171; }
         .tag-paid:hover { background: #ef4444; color: white; }
-        .tag-freemium { background: rgba(234, 179, 8, 0.08); border-color: rgba(234, 179, 8, 0.2); color: #facc15; }
+        .tag-freemium { background: rgba(234, 179, 8, 0.06); border-color: rgba(234, 179, 8, 0.15); color: #facc15; }
         .tag-freemium:hover { background: #eab308; color: white; }
 
-        .card-actions { display: none; } /* Removido para activar la apertura haciendo clic en cualquier parte de la tarjeta */
+        .card-actions { display: none; } 
         
         /* ACTION ROW ARROW INDICATOR */
-        .card-action-icon { width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, 0.02); display: flex; align-items: center; justify-content: center; color: #64748b; flex-shrink: 0; transition: all 0.2s ease; }
+        .card-action-icon { width: 32px; height: 32px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; color: #43434a; flex-shrink: 0; transition: all 0.2s ease; }
         .card:hover .card-action-icon { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; transform: translateX(2px); }
 
         /* PAGINATION */
         .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
-        .page-btn { padding: 10px 16px; border: 1px solid #334155; background: #1e293b; cursor: pointer; border-radius: 6px; font-weight: 600; color: #cbd5e1; transition: all 0.2s; }
-        .page-btn:hover { border-color: #475569; background: #334155; }
-        .page-btn.active { background: #e11d48; color: white; border-color: #e11d48; }
+        .page-btn { padding: 10px 16px; border: 1px solid rgba(255, 255, 255, 0.06); background: #121216; cursor: pointer; border-radius: 8px; font-weight: 600; color: #a1a1aa; transition: all 0.2s; }
+        .page-btn:hover { border-color: rgba(255, 255, 255, 0.15); background: #1a1a22; color: #ffffff; }
+        .page-btn.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
 
-        /* MODAL SYSTEMS */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); justify-content: center; align-items: center; z-index: 3000; padding: 20px; backdrop-filter: blur(6px); }
-        .modal-content { background: #1e293b; width: 100%; max-width: 750px; max-height: 85vh; border-radius: 12px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #334155; }
-        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #64748b; transition: color 0.2s; }
-        .close-modal:hover { color: #f1f5f9; }
-        .modal-title { font-size: 1.6rem; margin-bottom: 6px; color: #ffffff; font-weight: 800; }
-        .modal-subtitle { font-size: 0.9rem; color: #94a3b8; margin-bottom: 25px; border-bottom: 2px solid #334155; padding-bottom: 12px; }
+        /* VENTANA MODAL PREMIUM */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 6, 0.85); justify-content: center; align-items: center; z-index: 3000; padding: 20px; backdrop-filter: blur(8px); }
+        .modal-content { background: #121216; width: 100%; max-width: 750px; max-height: 85vh; border-radius: 16px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.7); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #52525b; transition: color 0.2s; }
+        .close-modal:hover { color: #ffffff; }
+        .modal-title { font-size: 1.5rem; margin-bottom: 6px; color: #ffffff; font-weight: 800; letter-spacing: -0.02em; }
+        .modal-subtitle { font-size: 0.85rem; color: #71717a; margin-bottom: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; }
         
-        .version-item { background: #0f172a; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
-        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 6px; background: #1e293b; border: 1px solid #334155; }
+        .version-item { background: #0b0b0e; border: 1px solid rgba(255, 255, 255, 0.04); padding: 20px; border-radius: 12px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
+        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.04); }
         .version-details { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; padding-right: 120px; }
-        .version-name { font-weight: 700; font-size: 1.1rem; color: #f43f5e; }
-        .modal-play-btn { background: #e11d48; color: white; border: none; padding: 6px 14px; font-size: 0.8rem; font-weight: 600; border-radius: 4px; cursor: pointer; width: fit-content; margin-top: 4px; transition: background 0.2s; }
-        .modal-play-btn:hover { background: #be123c; }
+        .version-name { font-weight: 700; font-size: 1.1rem; color: #38bdf8; }
+        .modal-play-btn { background: #0ea5e9; color: white; border: none; padding: 7px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; width: fit-content; margin-top: 4px; transition: background 0.2s; }
+        .modal-play-btn:hover { background: #0284c7; }
         
-        /* Botón de editar exclusivo para el modal de versiones */
-        .btn-modal-edit { background: #334155; border: 1px solid #475569; color: #cbd5e1; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 4px; cursor: pointer; margin-top: 4px; margin-left: 8px; transition: all 0.2s; }
-        .btn-modal-edit:hover { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+        .btn-modal-edit { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: #a1a1aa; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; cursor: pointer; margin-top: 4px; margin-left: 8px; transition: all 0.2s; }
+        .btn-modal-edit:hover { background: rgba(255, 255, 255, 0.04); color: white; border-color: rgba(255, 255, 255, 0.2); }
 
-        .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #1e293b; border: 1px solid #475569; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 6px; transition: all 0.2s; }
-        .btn-official-web:hover { background: #334155; border-color: #94a3b8; color: #ffffff; }
+        .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.08); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 8px; transition: all 0.2s; }
+        .btn-official-web:hover { background: #1a1a22; border-color: rgba(255, 255, 255, 0.2); color: #ffffff; }
 
         /* BOTÓN FLOTANTE DE SUGERENCIAS / REPORTES */
         .btn-floating-feedback {
@@ -177,7 +207,7 @@
             font-size: 0.85rem;
             font-weight: 700;
             text-decoration: none;
-            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -188,7 +218,7 @@
         .btn-floating-feedback:hover {
             transform: translateY(-3px) scale(1.03);
             background: #38bdf8;
-            box-shadow: 0 15px 25px rgba(14, 165, 233, 0.5);
+            box-shadow: 0 15px 25px rgba(14, 165, 233, 0.4);
         }
     </style>
 </head>
@@ -222,7 +252,7 @@
                     <input type="text" id="vbName" placeholder="e.g., Hatsune Miku V4X Dark" required>
                 </div>
                 <div class="form-group">
-                    <label for="vbDemo">Demo Song URL (Audio) <span style="color:#64748b; font-size:0.75rem;">(Optional)</span>:</label>
+                    <label for="vbDemo">Demo Song URL (Audio) <span style="color:#52525b; font-size:0.75rem;">(Optional)</span>:</label>
                     <input type="url" id="vbDemo" placeholder="https://example.com/audio.mp3">
                 </div>
                 <div class="form-group">
@@ -481,10 +511,9 @@
         document.getElementById('editingVersionId').value = "";
     };
 
-    // REDISEÑO INTEGRADO: Renderizado Asimétrico Horizontal (Estilo Corporativo Premium)
     function renderCatalogVb(page) {
         const grid = document.getElementById('catalogGridVb'); grid.innerHTML = "";
-        if (filteredVbIds.length === 0) { grid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#64748b;'>No voicebanks found.</p>"; return; }
+        if (filteredVbIds.length === 0) { grid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#52525b;'>No voicebanks found.</p>"; return; }
 
         let paginated = filteredVbIds.slice((page - 1) * itemsPerPage, page * itemsPerPage);
         paginated.forEach(id => {
@@ -502,7 +531,7 @@
                 <div class="card-body">
                     <span class="meta-id-tag">${char.id} (${char.versions.length})</span>
                     <h3 class="card-title">${latest.name}</h3>
-                    <div class="meta-line" style="font-size: 0.75rem; color:#64748b; margin-bottom: 2px;">Update: ${latest.date}</div>
+                    <div class="meta-line" style="font-size: 0.75rem; color:#71717a; margin-bottom: 2px;">Update: ${latest.date}</div>
                     <div class="tags-container">
                         ${latest.lang.split(',').slice(0,2).map(l => `<span class="tag" onclick="event.stopPropagation(); filterTagVb('${l.trim()}')">${l.trim()}</span>`).join('')}
                         ${latest.software.split(',').slice(0,1).map(s => `<span class="tag tag-software" onclick="event.stopPropagation(); filterTagVb('${s.trim()}')">${s.trim()}</span>`).join('')}
@@ -529,7 +558,6 @@
     document.getElementById('searchBarVb').addEventListener('input', applyFilterVb);
 
 
-    // --- SECTION 2: SOFTWARES & ENGINES ---
     async function loadSoftwares() {
         const { data, error } = await _supabase.from('engines').select(`id, developer, license, engine_versions ( name, img, release_date, official_web, created_at )`);
         if (error) return console.error(error.message);
@@ -560,10 +588,9 @@
         } catch (x) { alert(x.message); } finally { btn.disabled = false; btn.innerText = "Register Engine"; }
     });
 
-    // REDISEÑO INTEGRADO: Motores de Audio Horizontales Compactos
     function renderCatalogSw(page) {
         const grid = document.getElementById('catalogGridSw'); grid.innerHTML = "";
-        if (filteredSwIds.length === 0) { grid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#64748b;'>No systems found.</p>"; return; }
+        if (filteredSwIds.length === 0) { grid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#52525b;'>No systems found.</p>"; return; }
 
         let paginated = filteredSwIds.slice((page - 1) * itemsPerPage, page * itemsPerPage);
         paginated.forEach(id => {
@@ -578,7 +605,7 @@
                 <div class="card-body">
                     <span class="meta-id-tag">${eng.id}</span>
                     <h3 class="card-title">${latest.name}</h3>
-                    <div class="meta-line" style="font-size: 0.75rem; color:#64748b;">Dev: ${eng.developer}</div>
+                    <div class="meta-line" style="font-size: 0.75rem; color:#71717a;">Dev: ${eng.developer}</div>
                     <div class="tags-container">
                         <span class="tag ${licClass}" onclick="event.stopPropagation(); filterTagSw('${eng.license}')">${eng.license}</span>
                     </div>
@@ -604,7 +631,6 @@
     document.getElementById('searchBarSw').addEventListener('input', applyFilterSw);
 
 
-    // --- GLOBAL UTILITIES ---
     function renderPaginationUI(containerId, totalItems, activePage, callback) {
         const container = document.getElementById(containerId); container.innerHTML = "";
         const pages = Math.ceil(totalItems / itemsPerPage); if (pages <= 1) return;
@@ -620,7 +646,7 @@
         else { document.getElementById('searchBarSw').value = ""; applyFilterSw(); }
     };
 
-    // --- MODAL CONTROLLERS ---
+
     window.openModalVb = function(id) {
         const c = localVbData[id]; const modal = document.getElementById('globalModal');
         document.getElementById('modalTitle').innerText = `${id} - Archival Logs`;
