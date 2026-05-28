@@ -139,6 +139,8 @@
         <ul class="nav-menu">
             <li><button class="nav-btn active" onclick="switchTab('voicebanks', this)">Voicebanks</button></li>
             <li><button class="nav-btn" onclick="switchTab('softwares', this)">Softwares & Engines</button></li>
+            <!-- NUEVO: Botón de Sorpréndeme -->
+            <li><button class="nav-btn" onclick="triggerSurpriseVb()" style="color: #facc15; font-weight: 800;">🎲 Surprise Me</button></li>
         </ul>
     </div>
 </nav>
@@ -612,7 +614,31 @@
             globalAudio.src = url; globalAudio.play(); button.innerHTML = "⏸";
         }
     };
+    
+// FUNCIÓN PRESET: Selección e inyección de Voicebank aleatorio
+    window.triggerSurpriseVb = function() {
+        // Detener cualquier audio que se esté reproduciendo actualmente
+        globalAudio.pause();
 
+        // Validar si tenemos identificadores cargados en la base de datos local
+        if (!sortedVbIds || sortedVbIds.length === 0) {
+            alert("El catálogo de Voicebanks se está cargando o está vacío. ¡Inténtalo de nuevo en un segundo!");
+            return;
+        }
+
+        // Asegurarnos de que el usuario sea redirigido visualmente a la vista de Voicebanks
+        const vbTabBtn = document.querySelector(".nav-menu .nav-btn[onclick*='voicebanks']");
+        if (vbTabBtn) {
+            switchTab('voicebanks', vbTabBtn);
+        }
+
+        // Selección del índice aleatorio matemático basado en el arreglo global
+        const randomIndex = Math.floor(Math.random() * sortedVbIds.length);
+        const randomCharacterId = sortedVbIds[randomIndex];
+
+        // Disparar la apertura del modal con los datos del personaje seleccionado
+        openModalVb(randomCharacterId);
+    };
     // BOOTSTRAP APPS
     loadVoicebanks();
     loadSoftwares();
