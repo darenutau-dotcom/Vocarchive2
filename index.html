@@ -421,34 +421,34 @@
         } catch(e) { console.error(e); }
     }
 
-    async function loadVoicebanks() {
-        await loadGlobalRatings();
-        
-        const { data, error } = await _supabase
-            .from('personajes')
-            .select(`id, gender, versiones ( id, name, demo, img, lang, software, date, web, created_at )`);
-        
-        if (error) {
-            alert("Error de Supabase: " + error.message);
-            return console.error(error.message);
-        }
-
-        localVbData = {};
-        data.forEach(char => {
-            if(char.versiones && char.versiones.length > 0) {
-                const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
-                let displayGender = (char.gender === "Femenino" || char.gender === "Female") ? "Female" : (char.gender === "Masculino" || char.gender === "Male" ? "Male" : "Other");
-                localVbData[char.id] = { 
-                    id: char.id, 
-                    gender: displayGender, 
-                    versions: sortedVersions, 
-                    latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) 
-                };
-            }
-        });
-        sortedVbIds = Object.keys(localVbData).sort((a, b) => localVbData[b].latestReleaseDate - localVbData[a].latestReleaseDate);
-        applyFilterVb();
+async function loadVoicebanks() {
+    await loadGlobalRatings();
+    
+    const { data, error } = await _supabase
+        .from('personajes')
+        .select(`id, gender, versiones ( id, name, demo, img, lang, software, genres, date, web, created_at )`); // <-- AQUÍ SE AGREGÓ GENRES
+    
+    if (error) {
+        alert("Error de Supabase: " + error.message);
+        return console.error(error.message);
     }
+
+    localVbData = {};
+    data.forEach(char => {
+        if(char.versiones && char.versiones.length > 0) {
+            const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
+            let displayGender = (char.gender === "Femenino" || char.gender === "Female") ? "Female" : (char.gender === "Masculino" || char.gender === "Male" ? "Male" : "Other");
+            localVbData[char.id] = { 
+                id: char.id, 
+                gender: displayGender, 
+                versions: sortedVersions, 
+                latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) 
+            };
+        }
+    });
+    sortedVbIds = Object.keys(localVbData).sort((a, b) => localVbData[b].latestReleaseDate - localVbData[a].latestReleaseDate);
+    applyFilterVb();
+}
 
     document.getElementById('voicebankForm').addEventListener('submit', async (e) => {
         e.preventDefault();
