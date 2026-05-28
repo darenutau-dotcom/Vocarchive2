@@ -8,7 +8,6 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
         
-        /* FONDO GENERAL ULTRA OSCURO Y CONSISTENTE */
         body { 
             background-color: #0b0b0e; 
             color: #e4e4e7; 
@@ -18,7 +17,6 @@
         
         .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
         
-        /* BARRA DE NAVEGACIÓN INTEGRADA Y MINIMALISTA */
         .navbar { 
             position: fixed; 
             top: 0; 
@@ -47,14 +45,11 @@
         .nav-btn:hover { color: #ffffff; background: rgba(255, 255, 255, 0.04); }
         .nav-btn.active { color: #ffffff; background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.3); }
 
-        /* TABS VIEWS CONTROLLER */
         .tab-view { display: none; }
         .tab-view.active { display: grid; }
 
-        /* LAYOUT ARCHITECTURE */
         .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; margin-top: 20px; }
 
-        /* FORMULARIOS ESTILO PANEL DE EDICIÓN DE SOFTWARE */
         .form-section { 
             background: #121216; 
             padding: 25px; 
@@ -82,7 +77,6 @@
         .btn-cancel-edit { display: none; width: 100%; padding: 10px; background: transparent; color: #a1a1aa; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; margin-top: 8px; text-align: center; transition: all 0.2s; }
         .btn-cancel-edit:hover { background: rgba(255, 255, 255, 0.04); color: #ffffff; }
 
-        /* SEARCH & CATALOGS */
         .catalog-section { display: flex; flex-direction: column; gap: 25px; }
         .search-container { display: flex; gap: 10px; width: 100%; }
         .search-bar { flex-grow: 1; padding: 14px 24px; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; font-size: 0.95rem; box-shadow: 0 4px 20px rgba(0,0,0,0.3); background: #121216; color: #ffffff; transition: all 0.2s; }
@@ -91,7 +85,6 @@
         .btn-clear-filter { padding: 0 20px; background: #1a1a22; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 0.85rem; font-weight: 600; color: #f4f4f5; cursor: pointer; display: none; }
         .btn-clear-filter:hover { background: rgba(255, 255, 255, 0.04); }
         
-        /* TARJETAS PREMIUM */
         .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
         
         .card { 
@@ -143,13 +136,11 @@
         .card-action-icon { width: 32px; height: 32px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; color: #43434a; flex-shrink: 0; transition: all 0.2s ease; }
         .card:hover .card-action-icon { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; transform: translateX(2px); }
 
-        /* PAGINATION */
         .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
         .page-btn { padding: 10px 16px; border: 1px solid rgba(255, 255, 255, 0.06); background: #121216; cursor: pointer; border-radius: 8px; font-weight: 600; color: #a1a1aa; transition: all 0.2s; }
         .page-btn:hover { border-color: rgba(255, 255, 255, 0.15); background: #1a1a22; color: #ffffff; }
         .page-btn.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
 
-        /* MODAL WINDOW */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 6, 0.85); justify-content: center; align-items: center; z-index: 3000; padding: 20px; backdrop-filter: blur(8px); }
         .modal-content { background: #121216; width: 100%; max-width: 750px; max-height: 85vh; border-radius: 16px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.7); border: 1px solid rgba(255, 255, 255, 0.05); }
         .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #52525b; transition: color 0.2s; }
@@ -157,13 +148,12 @@
         .modal-title { font-size: 1.5rem; margin-bottom: 6px; color: #ffffff; font-weight: 800; letter-spacing: -0.02em; }
         .modal-subtitle { font-size: 0.85rem; color: #71717a; margin-bottom: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; }
         
-        /* ESTILOS AUDIO NATIVO OSCURO */
         audio::-webkit-media-controls-panel { background-color: #1a1a22; }
         audio::-webkit-media-controls-current-time-display,
         audio::-webkit-media-controls-time-remaining-display { color: #ffffff; }
 
         .version-item { background: #0b0b0e; border: 1px solid rgba(255, 255, 255, 0.04); padding: 20px; border-radius: 12px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
-        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.04); }
+        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.04); flex-shrink: 0; }
         .version-details { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; padding-right: 120px; }
         .version-name { font-weight: 700; font-size: 1.1rem; color: #38bdf8; }
         .modal-play-btn { background: #0ea5e9; color: white; border: none; padding: 7px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; width: fit-content; margin-top: 4px; transition: background 0.2s; }
@@ -175,7 +165,6 @@
         .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.08); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 8px; transition: all 0.2s; }
         .btn-official-web:hover { background: #1a1a22; border-color: rgba(255, 255, 255, 0.2); color: #ffffff; }
 
-        /* --- RATINGS PANEL (MIXER LOOK) --- */
         .ratings-panel { margin-top: 8px; background: #121216; border: 1px solid rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
         .rating-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #a1a1aa; }
         .rating-label { font-weight: 600; min-width: 120px; text-transform: uppercase; letter-spacing: 0.02em; color: #71717a; }
@@ -187,10 +176,9 @@
         .rate-toggle-btn { background: transparent; border: none; color: #0ea5e9; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-decoration: underline; margin-top: 4px; width: fit-content; padding: 0; text-underline-offset: 2px; }
         .rate-toggle-btn:hover { color: #38bdf8; }
         .rate-toggle-btn:disabled { color: #52525b; text-decoration: none; cursor: not-allowed; }
-        .btn-submit-vote { background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); color: #38bdf8; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-top: 6px; width: fit-content; transition: all 0.2s; text-transform: uppercase; }
+        .btn-submit-vote { background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); color: #38bdf8; font-size: 0.7 turnaround; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-top: 6px; width: fit-content; transition: all 0.2s; text-transform: uppercase; }
         .btn-submit-vote:hover { background: #0ea5e9; color: white; }
 
-        /* FLOATING FEEDBACK BUTTON */
         .btn-floating-feedback {
             position: fixed;
             bottom: 25px;
@@ -217,82 +205,38 @@
             box-shadow: 0 15px 25px rgba(14, 165, 233, 0.4);
         }
 
-        /* --- ADAPTACIÓN ULTRA PARA DISPOSITIVOS MÓVILES (MÉDIAS QUERIES) --- */
+        /* --- CORRECCIONES RESPONSIVE PREMIUM --- */
         @media (max-width: 900px) { 
-            body {
-                padding-top: 140px; /* Da espacio extra ya que la barra de navegación en dos filas es más alta */
-            }
-            .main-layout { 
-                grid-template-columns: 1fr; /* Coloca el formulario arriba y el catálogo abajo */
-                gap: 20px;
-            }
-            .form-section {
-                position: relative !important; /* Desactiva el modo flotante lateral fijo */
-                top: 0 !important;
-                box-shadow: none;
-            }
-            .nav-container {
-                flex-direction: column; /* Centra el logo arriba y los botones de vistas abajo */
-                gap: 12px;
-                padding: 12px 20px;
-            }
+            body { padding-top: 140px; }
+            .main-layout { grid-template-columns: 1fr; gap: 20px; }
+            .form-section { position: relative !important; top: 0 !important; box-shadow: none; }
+            .nav-container { flex-direction: column; gap: 12px; padding: 12px 20px; }
         }
 
         @media (max-width: 600px) {
-            .modal-content {
-                padding: 16px;
-                max-height: 90vh;
-            }
-            .modal-title {
-                font-size: 1.25rem;
-            }
-            /* Reacomoda los elementos de la versión de horizontal a vertical */
-            .version-item > div {
-                flex-direction: column !important;
-                gap: 16px !important;
-                text-align: center;
-            }
-            .version-img {
-                width: 80px;
-                height: 80px;
-                margin: 0 auto;
-                display: block;
-            }
-            .version-details {
-                padding-right: 0 !important; /* Libera el espacio reservado del botón absoluto */
-                align-items: center;
-            }
-            .version-details .tags-container {
-                justify-content: center; /* Alinea los tags al centro del teléfono */
-            }
-            .version-details audio {
-                width: 100% !important;
-                max-width: 100% !important;
-            }
-            /* Convierte el link externo en un botón de ancho completo abajo del todo */
-            .btn-official-web {
-                position: relative !important;
-                right: 0 !important;
-                bottom: 0 !important;
-                display: block;
-                width: 100%;
-                text-align: center;
-                margin-top: 8px;
-                box-sizing: border-box;
-            }
-            .ratings-panel {
-                max-width: 100% !important;
-                width: 100%;
-            }
-            body {
-                padding-bottom: 90px; /* Previene que el botón flotante tape el final de la grid */
-            }
-            .btn-floating-feedback {
-                padding: 10px 16px;
-                font-size: 0.8rem;
-                bottom: 15px;
-                right: 15px;
-            }
+            .modal-content { padding: 20px 16px; max-height: 90vh; }
+            .modal-title { font-size: 1.25rem; }
+            
+            /* Corrección para sc.jpeg: Reacomodo vertical limpio */
+            .version-item { flex-direction: column !important; gap: 18px !important; align-items: center; padding: 16px; }
+            .version-item > div { flex-direction: column !important; gap: 14px !important; text-align: center; width: 100%; }
+            
+            /* Mantiene la proporción perfecta de la ilustración */
+            .version-img { width: 120px !important; height: 120px !important; object-fit: contain !important; margin: 0 auto; display: block; border-radius: 10px; }
+            
+            .version-details { padding-right: 0 !important; align-items: center; width: 100%; }
+            .version-details .tags-container { justify-content: center; margin-bottom: 6px; }
+            
+            /* Da separación extra a los controles del reproductor y edición */
+            .version-details audio { width: 100% !important; max-width: 100% !important; margin-top: 4px; }
+            .btn-modal-edit { margin-top: 10px !important; width: 100%; text-align: center; justify-content: center; }
+            
+            /* El botón de enlace ahora respira y se expande abajo de forma independiente */
+            .btn-official-web { position: relative !important; right: 0 !important; bottom: 0 !important; display: block; width: 100%; text-align: center; margin-top: 14px; margin-bottom: 4px; box-sizing: border-box; padding: 11px; }
+            
+            .ratings-panel { max-width: 100% !important; width: 100%; margin-top: 12px; }
+            body { padding-bottom: 90px; }
+            .btn-floating-feedback { padding: 10px 16px; font-size: 0.8rem; bottom: 15px; right: 15px; }
         }
     </style>
 </head>
@@ -461,7 +405,6 @@
         globalAudio.pause();
     }
 
-    // CARGA GLOBAL DE CALIFICACIONES
     async function loadGlobalRatings() {
         try {
             const { data, error } = await _supabase.from('calificaciones').select('version_id, quality, clarity, usability, versatility');
@@ -498,34 +441,22 @@
         } catch(e) { console.error(e); }
     }
 
-async function loadVoicebanks() {
-    await loadGlobalRatings();
-    
-    const { data, error } = await _supabase
-        .from('personajes')
-        .select(`id, gender, versiones ( id, name, demo, img, lang, software, genres, date, web, created_at )`);
-    
-    if (error) {
-        alert("Error de Supabase: " + error.message);
-        return console.error(error.message);
-    }
+    async function loadVoicebanks() {
+        await loadGlobalRatings();
+        const { data, error } = await _supabase.from('personajes').select(`id, gender, versiones ( id, name, demo, img, lang, software, genres, date, web, created_at )`);
+        if (error) return console.error(error.message);
 
-    localVbData = {};
-    data.forEach(char => {
-        if(char.versiones && char.versiones.length > 0) {
-            const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
-            let displayGender = (char.gender === "Femenino" || char.gender === "Female") ? "Female" : (char.gender === "Masculino" || char.gender === "Male" ? "Male" : "Other");
-            localVbData[char.id] = { 
-                id: char.id, 
-                gender: displayGender, 
-                versions: sortedVersions, 
-                latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) 
-            };
-        }
-    });
-    sortedVbIds = Object.keys(localVbData).sort((a, b) => localVbData[b].latestReleaseDate - localVbData[a].latestReleaseDate);
-    applyFilterVb();
-}
+        localVbData = {};
+        data.forEach(char => {
+            if(char.versiones && char.versiones.length > 0) {
+                const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
+                let displayGender = (char.gender === "Femenino" || char.gender === "Female") ? "Female" : (char.gender === "Masculino" || char.gender === "Male" ? "Male" : "Other");
+                localVbData[char.id] = { id: char.id, gender: displayGender, versions: sortedVersions, latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) };
+            }
+        });
+        sortedVbIds = Object.keys(localVbData).sort((a, b) => localVbData[b].latestReleaseDate - localVbData[a].latestReleaseDate);
+        applyFilterVb();
+    }
 
     document.getElementById('voicebankForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -630,9 +561,7 @@ async function loadVoicebanks() {
     
     window.filterTagVb = function(t) { 
         const searchBar = document.getElementById('searchBarVb');
-        searchBar.value = t; 
-        applyFilterVb(); 
-        searchBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        searchBar.value = t; applyFilterVb(); searchBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
     document.getElementById('searchBarVb').addEventListener('input', applyFilterVb);
 
@@ -708,10 +637,8 @@ async function loadVoicebanks() {
         else { document.getElementById('searchBarSw').value = ""; applyFilterSw(); }
     };
 
-    // VENTANA MODAL DE VOICEBANKS
     window.openModalVb = function(id) {
         globalAudio.pause();
-
         const c = localVbData[id]; const modal = document.getElementById('globalModal');
         document.getElementById('modalTitle').innerText = `${id} - Archival Logs`;
         document.getElementById('modalSubtitle').innerText = `Total alternative configurations: ${c.versions.length}`;
@@ -724,7 +651,6 @@ async function loadVoicebanks() {
                 </div>` : '';
                 
             const rateData = cachedRatings[v.id] || { quality: 0, clarity: 0, usability: 0, versatility: 0, global: "0.0", count: 0 };
-
             const hasVotedLocal = localStorage.getItem(`voted_v_${v.id}`);
             const btnText = hasVotedLocal ? "[ You already evaluated this bank ]" : "[ Evaluate this bank ]";
             const btnDisabledAttr = hasVotedLocal ? "disabled" : "";
@@ -820,17 +746,14 @@ async function loadVoicebanks() {
 
     window.submitRating = async function(versionId) {
         const actionBtn = document.getElementById(`btnVote-${versionId}`);
-        actionBtn.disabled = true;
-        actionBtn.innerText = "[ Securing Connection... ]";
+        actionBtn.disabled = true; actionBtn.innerText = "[ Securing Connection... ]";
 
         let clientIp = "0.0.0.0";
         try {
             const res = await fetch('https://api.ipify.org?format=json');
             const data = await res.json();
             if(data && data.ip) clientIp = data.ip;
-        } catch(ipErr) {
-            console.warn("Fallo al resolver IP externa. Usando fallback básico.");
-        }
+        } catch(ipErr) { console.warn("Fallo al resolver IP."); }
 
         const q = parseInt(document.getElementById(`sl-q-${versionId}`).value);
         const c = parseInt(document.getElementById(`sl-c-${versionId}`).value);
@@ -838,25 +761,15 @@ async function loadVoicebanks() {
         const v = parseInt(document.getElementById(`sl-v-${versionId}`).value);
 
         const { error } = await _supabase.from('calificaciones').insert({
-            version_id: versionId,
-            quality: q,
-            clarity: c,
-            usability: u,
-            versatility: v,
-            user_ip: clientIp
+            version_id: versionId, quality: q, clarity: c, usability: u, versatility: v, user_ip: clientIp
         });
 
         if (error) {
-            actionBtn.disabled = false;
-            actionBtn.innerText = "[ Submit Evaluation ]";
-            
+            actionBtn.disabled = false; actionBtn.innerText = "[ Submit Evaluation ]";
             if(error.code === "23505") {
                 alert("🔒 Error de Seguridad: Tu dirección IP ya ha registrado un voto para este banco de voz hoy.");
-                localStorage.setItem(`voted_v_${versionId}`, "true"); 
-                reloadModalAfterVote();
-            } else {
-                alert("No se pudo guardar: " + error.message);
-            }
+                localStorage.setItem(`voted_v_${versionId}`, "true"); reloadModalAfterVote();
+            } else { alert("No se pudo guardar: " + error.message); }
         } else {
             localStorage.setItem(`voted_v_${versionId}`, "true");
             alert("¡Evaluación técnica procesada y firmada con éxito!");
@@ -909,7 +822,6 @@ async function loadVoicebanks() {
         if(charId) openModalVb(charId);
     };
 
-    // Inicialización al cargar la página
     loadVoicebanks();
     loadSoftwares();
 </script>
