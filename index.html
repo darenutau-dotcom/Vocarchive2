@@ -500,9 +500,9 @@
         <div class="nav-container">
             <div class="nav-logo">VocalArchive<span>.db</span></div>
             <ul class="nav-menu">
-                <!-- Links directos a archivos físicos -->
-                <li><a href="index.html" class="nav-btn active" style="text-decoration: none; display: inline-block;">Voicebanks</a></li>
-                <li><a href="softwares.html" class="nav-btn" style="text-decoration: none; display: inline-block;">Softwares & Engines</a></li>
+                <!-- Se restauraron los botones originales con eventos de redirección limpia por JS -->
+                <li><button class="nav-btn active" onclick="navigateTo('index.html')">Voicebanks</button></li>
+                <li><button class="nav-btn" onclick="navigateTo('softwares.html')">Softwares & Engines</button></li>
                 <li><button class="nav-btn" onclick="triggerSurpriseVb()" style="color: #facc15; font-weight: 800;">🎲 Surprise Me</button></li>
             </ul>
         </div>
@@ -510,7 +510,7 @@
 
     <!-- Main Views -->
     <div class="container">
-        <!-- Voicebanks Section (Active Default) -->
+        <!-- Voicebanks Section -->
         <div id="view-voicebanks" class="main-layout">
             <aside class="form-section">
                 <h2>Upload Voicebank</h2>
@@ -626,6 +626,11 @@
             // Form Submit Interceptions
             document.getElementById('voicebankForm').addEventListener('submit', handleVbSubmit);
         });
+
+        // Función de redirección para mantener los botones nativos estilizados
+        function navigateTo(url) {
+            window.location.href = url;
+        }
 
         // Interactive Criteria Star Functionality
         function initStars(formId, ratingStore) {
