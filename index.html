@@ -3,830 +3,826 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voicebank & Engine Central Archive</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>VocalArchive.db - Voicebanks</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
-        
-        body { 
-            background-color: #0b0b0e; 
-            color: #e4e4e7; 
-            padding-top: 80px; 
-            padding-bottom: 40px; 
-        }
-        
-        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
-        
-        .navbar { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            background: rgba(11, 11, 14, 0.85); 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04); 
-            z-index: 2000; 
-            backdrop-filter: blur(12px); 
-        }
-        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; }
-        .nav-logo { font-size: 1.25rem; font-weight: 800; color: #ffffff; letter-spacing: -0.025em; }
-        .nav-logo span { color: #0ea5e9; } 
-        .nav-menu { display: flex; gap: 10px; list-style: none; }
-        .nav-btn { 
-            background: transparent; 
-            border: none; 
-            color: #a1a1aa; 
-            font-size: 0.9rem; 
-            font-weight: 600; 
-            padding: 8px 16px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-        .nav-btn:hover { color: #ffffff; background: rgba(255, 255, 255, 0.04); }
-        .nav-btn.active { color: #ffffff; background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.3); }
-
-        .tab-view { display: none; }
-        .tab-view.active { display: grid; }
-
-        .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; margin-top: 20px; }
-
-        .form-section { 
-            background: #121216; 
-            padding: 25px; 
-            border-radius: 16px; 
-            border: 1px solid rgba(255, 255, 255, 0.04); 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-            height: fit-content; 
-            position: sticky; 
-            top: 100px; 
-            transition: all 0.3s; 
-        }
-        .form-section.editing-mode { border-color: #0ea5e9; box-shadow: 0 10px 25px rgba(14, 165, 233, 0.1); }
-        .form-section h2 { margin-bottom: 20px; font-size: 1.15rem; color: #ffffff; font-weight: 700; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; letter-spacing: -0.01em; }
-        .form-section.editing-mode h2 { color: #38bdf8; border-bottom-color: rgba(14, 165, 233, 0.3); }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; }
-        .form-group input, .form-group select { width: 100%; padding: 11px 14px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; font-size: 0.9rem; color: #ffffff; transition: all 0.2s; background-color: #1a1a22; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #0ea5e9; background-color: #1a1a22; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
-        .form-group input::placeholder { color: #52525b; }
-        
-        .btn-submit { width: 100%; padding: 12px; background: #0ea5e9; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
-        .btn-submit:hover { background: #0284c7; transform: translateY(-1px); }
-        .btn-submit:disabled { background: #27272a; color: #52525b; cursor: not-allowed; transform: none; }
-        
-        .btn-cancel-edit { display: none; width: 100%; padding: 10px; background: transparent; color: #a1a1aa; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; margin-top: 8px; text-align: center; transition: all 0.2s; }
-        .btn-cancel-edit:hover { background: rgba(255, 255, 255, 0.04); color: #ffffff; }
-
-        .catalog-section { display: flex; flex-direction: column; gap: 25px; }
-        .search-container { display: flex; gap: 10px; width: 100%; }
-        .search-bar { flex-grow: 1; padding: 14px 24px; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; font-size: 0.95rem; box-shadow: 0 4px 20px rgba(0,0,0,0.3); background: #121216; color: #ffffff; transition: all 0.2s; }
-        .search-bar:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
-        .search-bar::placeholder { color: #42424a; }
-        .btn-clear-filter { padding: 0 20px; background: #1a1a22; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 0.85rem; font-weight: 600; color: #f4f4f5; cursor: pointer; display: none; }
-        .btn-clear-filter:hover { background: rgba(255, 255, 255, 0.04); }
-        
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-        
-        .card { 
-            background: #121216; 
-            border-radius: 16px; 
-            overflow: hidden; 
-            display: flex; 
-            align-items: center; 
-            gap: 16px;
-            padding: 16px; 
-            border: 1px solid rgba(255, 255, 255, 0.04); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
-            position: relative; 
-            cursor: pointer;
-        }
-        .card:hover { 
-            transform: translateY(-2px); 
-            background: #1a1a22; 
-            border-color: rgba(14, 165, 233, 0.3); 
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6); 
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --star-color: #fbbf24;
         }
 
-        .card-img-box { width: 75px; height: 75px; border-radius: 12px; overflow: hidden; background: #0b0b0e; position: relative; flex-shrink: 0; }
-        .card-img-box img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .audio-player-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 11, 14, 0.7); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
-        .card-img-box:hover .audio-player-box { opacity: 1; }
-        .play-btn { background: #ffffff; border: none; color: #0b0b0e; width: 32px; height: 32px; font-size: 0.9rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: transform 0.2s; }
-        .play-btn:hover { transform: scale(1.1); background: #0ea5e9; color: white; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-        .card-body { padding: 0; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
-        .meta-id-tag { font-size: 0.7rem; color: #71717a; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-        .card-title { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 4px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        
-        .tags-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-        .tag { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 4px; text-transform: uppercase; color: #a1a1aa; cursor: pointer; transition: all 0.15s; }
-        .tag:hover { background: #0ea5e9; color: white; border-color: #0ea5e9; }
-        .tag-software { background: rgba(14, 165, 233, 0.06); border-color: rgba(14, 165, 233, 0.15); color: #38bdf8; }
-        .tag-software:hover { background: #0ea5e9; color: white; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding-bottom: 60px;
+        }
 
-        .tag-free { background: rgba(34, 197, 94, 0.06); border-color: rgba(34, 197, 94, 0.15); color: #4ade80; }
-        .tag-free:hover { background: #22c55e; color: white; }
-        .tag-paid { background: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.15); color: #f87171; }
-        .tag-paid:hover { background: #ef4444; color: white; }
-        .tag-freemium { background: rgba(234, 179, 8, 0.06); border-color: rgba(234, 179, 8, 0.15); color: #facc15; }
-        .tag-freemium:hover { background: #eab308; color: white; }
-        
-        .card-action-icon { width: 32px; height: 32px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; color: #43434a; flex-shrink: 0; transition: all 0.2s ease; }
-        .card:hover .card-action-icon { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; transform: translateX(2px); }
+        /* Navbar Styles */
+        .navbar {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
-        .page-btn { padding: 10px 16px; border: 1px solid rgba(255, 255, 255, 0.06); background: #121216; cursor: pointer; border-radius: 8px; font-weight: 600; color: #a1a1aa; transition: all 0.2s; }
-        .page-btn:hover { border-color: rgba(255, 255, 255, 0.15); background: #1a1a22; color: #ffffff; }
-        .page-btn.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 6, 0.85); justify-content: center; align-items: center; z-index: 3000; padding: 20px; backdrop-filter: blur(8px); }
-        .modal-content { background: #121216; width: 100%; max-width: 750px; max-height: 85vh; border-radius: 16px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.7); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #52525b; transition: color 0.2s; }
-        .close-modal:hover { color: #ffffff; }
-        .modal-title { font-size: 1.5rem; margin-bottom: 6px; color: #ffffff; font-weight: 800; letter-spacing: -0.02em; }
-        .modal-subtitle { font-size: 0.85rem; color: #71717a; margin-bottom: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; }
-        
-        audio::-webkit-media-controls-panel { background-color: #1a1a22; }
-        audio::-webkit-media-controls-current-time-display,
-        audio::-webkit-media-controls-time-remaining-display { color: #ffffff; }
-
-        .version-item { background: #0b0b0e; border: 1px solid rgba(255, 255, 255, 0.04); padding: 20px; border-radius: 12px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
-        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.04); flex-shrink: 0; }
-        .version-details { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; padding-right: 120px; }
-        .version-name { font-weight: 700; font-size: 1.1rem; color: #38bdf8; }
-        .modal-play-btn { background: #0ea5e9; color: white; border: none; padding: 7px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; cursor: pointer; width: fit-content; margin-top: 4px; transition: background 0.2s; }
-        .modal-play-btn:hover { background: #0284c7; }
-        
-        .btn-modal-edit { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: #a1a1aa; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; cursor: pointer; margin-top: 4px; transition: all 0.2s; }
-        .btn-modal-edit:hover { background: rgba(255, 255, 255, 0.04); color: white; border-color: rgba(255, 255, 255, 0.2); }
-
-        .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.08); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 8px; transition: all 0.2s; }
-        .btn-official-web:hover { background: #1a1a22; border-color: rgba(255, 255, 255, 0.2); color: #ffffff; }
-
-        .ratings-panel { margin-top: 8px; background: #121216; border: 1px solid rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
-        .rating-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #a1a1aa; }
-        .rating-label { font-weight: 600; min-width: 120px; text-transform: uppercase; letter-spacing: 0.02em; color: #71717a; }
-        .rating-bar-container { flex-grow: 1; height: 6px; background: #1a1a22; border-radius: 3px; margin: 0 10px; overflow: hidden; position: relative; }
-        .rating-bar-fill { height: 100%; background: #0ea5e9; width: 0%; border-radius: 3px; transition: width 0.5s ease; }
-        .rating-value { font-weight: 700; color: #ffffff; width: 24px; text-align: right; }
-        
-        .rating-slider { width: 100%; margin: 0; cursor: pointer; accent-color: #0ea5e9; height: 6px; background: #1a1a22; border-radius: 3px; }
-        .rate-toggle-btn { background: transparent; border: none; color: #0ea5e9; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-decoration: underline; margin-top: 4px; width: fit-content; padding: 0; text-underline-offset: 2px; }
-        .rate-toggle-btn:hover { color: #38bdf8; }
-        .rate-toggle-btn:disabled { color: #52525b; text-decoration: none; cursor: not-allowed; }
-        .btn-submit-vote { background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); color: #38bdf8; font-size: 0.7 turnaround; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-top: 6px; width: fit-content; transition: all 0.2s; text-transform: uppercase; }
-        .btn-submit-vote:hover { background: #0ea5e9; color: white; }
-
-        .btn-floating-feedback {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background: #0ea5e9; 
-            color: #ffffff;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 50px;
-            font-size: 0.85rem;
+        .nav-logo {
+            font-size: 1.5rem;
             font-weight: 700;
+            letter-spacing: -0.05em;
+        }
+
+        .nav-logo span {
+            color: var(--accent);
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-main);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-btn.active {
+            color: var(--text-main);
+            background-color: var(--accent);
+        }
+
+        /* Main Layout */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Form Section */
+        .form-section {
+            background-color: var(--bg-card);
+            padding: 1.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            height: fit-content;
+        }
+
+        .form-section h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.625rem 0.75rem;
+            border-radius: 0.375rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Criteria Rating System */
+        .criteria-rating {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .criteria-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .criteria-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .criteria-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .star-rating span {
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--border-color);
+            transition: color 0.1s;
+        }
+
+        .star-rating span.selected,
+        .star-rating span:hover,
+        .star-rating span:hover ~ span {
+            color: var(--star-color);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Catalog Section */
+        .catalog-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-bar {
+            flex: 1;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-clear-filter {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.75rem 1.2rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .btn-clear-filter:hover {
+            color: var(--text-main);
+            border-color: var(--text-muted);
+        }
+
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Card Component */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: #475569;
+        }
+
+        .card-header {
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .card-title-group {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .card-meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .meta-item span:first-child {
+            color: var(--text-muted);
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .card-description {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 0.25rem;
+        }
+
+        .card-ratings-display {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-top: auto;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .rating-display-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .rating-display-stars {
+            color: var(--star-color);
+        }
+
+        .card-actions {
+            padding: 1rem 1.25rem;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .card-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
             text-decoration: none;
-            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2);
+            transition: background-color 0.2s;
+        }
+
+        .card-btn-primary {
+            background-color: #334155;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-btn-primary:hover {
+            background-color: #475569;
+        }
+
+        .card-btn-danger {
+            background-color: transparent;
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            flex: 0 0 auto;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .card-btn-danger:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Engine Tags */
+        .engine-tag {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #93c5fd;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            width: fit-content;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .page-btn {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            min-width: 36px;
+            height: 36px;
+            padding: 0 6px;
+            border-radius: 0.375rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--text-muted);
+            color: var(--text-main);
+        }
+
+        .page-btn.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Floating Report Button */
+        .floating-report-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             cursor: pointer;
-            z-index: 2500;
-            transition: all 0.2s ease-in-out;
-        }
-        .btn-floating-feedback:hover {
-            transform: translateY(-3px) scale(1.03);
-            background: #38bdf8;
-            box-shadow: 0 15px 25px rgba(14, 165, 233, 0.4);
-        }
-
-        /* --- CORRECCIONES RESPONSIVE PREMIUM --- */
-        @media (max-width: 900px) { 
-            body { padding-top: 140px; }
-            .main-layout { grid-template-columns: 1fr; gap: 20px; }
-            .form-section { position: relative !important; top: 0 !important; box-shadow: none; }
-            .nav-container { flex-direction: column; gap: 12px; padding: 12px 20px; }
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 999;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
         }
 
-        @media (max-width: 600px) {
-            .modal-content { padding: 20px 16px; max-height: 90vh; }
-            .modal-title { font-size: 1.25rem; }
-            
-            /* Corrección para sc.jpeg: Reacomodo vertical limpio */
-            .version-item { flex-direction: column !important; gap: 18px !important; align-items: center; padding: 16px; }
-            .version-item > div { flex-direction: column !important; gap: 14px !important; text-align: center; width: 100%; }
-            
-            /* Mantiene la proporción perfecta de la ilustración */
-            .version-img { width: 120px !important; height: 120px !important; object-fit: contain !important; margin: 0 auto; display: block; border-radius: 10px; }
-            
-            .version-details { padding-right: 0 !important; align-items: center; width: 100%; }
-            .version-details .tags-container { justify-content: center; margin-bottom: 6px; }
-            
-            /* Da separación extra a los controles del reproductor y edición */
-            .version-details audio { width: 100% !important; max-width: 100% !important; margin-top: 4px; }
-            .btn-modal-edit { margin-top: 10px !important; width: 100%; text-align: center; justify-content: center; }
-            
-            /* El botón de enlace ahora respira y se expande abajo de forma independiente */
-            .btn-official-web { position: relative !important; right: 0 !important; bottom: 0 !important; display: block; width: 100%; text-align: center; margin-top: 14px; margin-bottom: 4px; box-sizing: border-box; padding: 11px; }
-            
-            .ratings-panel { max-width: 100% !important; width: 100%; margin-top: 12px; }
-            body { padding-bottom: 90px; }
-            .btn-floating-feedback { padding: 10px 16px; font-size: 0.8rem; bottom: 15px; right: 15px; }
+        .floating-report-btn:hover {
+            background-color: var(--danger-hover);
         }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="nav-container">
-        <div class="nav-logo">VocalArchive<span>.db</span></div>
-        <ul class="nav-menu">
-            <li><button class="nav-btn active" onclick="switchTab('voicebanks', this)">Voicebanks</button></li>
-            <li><button class="nav-btn" onclick="switchTab('softwares', this)">Softwares & Engines</button></li>
-            <li><button class="nav-btn" onclick="triggerSurpriseVb()" style="color: #facc15; font-weight: 800;">🎲 Surprise Me</button></li>
-        </ul>
-    </div>
-</nav>
+    <!-- Navbar Container -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">VocalArchive<span>.db</span></div>
+            <ul class="nav-menu">
+                <!-- Links directos a archivos físicos -->
+                <li><a href="index.html" class="nav-btn active" style="text-decoration: none; display: inline-block;">Voicebanks</a></li>
+                <li><a href="softwares.html" class="nav-btn" style="text-decoration: none; display: inline-block;">Softwares & Engines</a></li>
+                <li><button class="nav-btn" onclick="triggerSurpriseVb()" style="color: #facc15; font-weight: 800;">🎲 Surprise Me</button></li>
+            </ul>
+        </div>
+    </nav>
 
-<div class="container">
+    <!-- Main Views -->
+    <div class="container">
+        <!-- Voicebanks Section (Active Default) -->
+        <div id="view-voicebanks" class="main-layout">
+            <aside class="form-section">
+                <h2>Upload Voicebank</h2>
+                <form id="voicebankForm">
+                    <div class="form-group">
+                        <label for="vbName">Voicebank Name</label>
+                        <input type="text" id="vbName" class="form-control" required placeholder="e.g. Hatsune Miku NT">
+                    </div>
+                    <div class="form-group">
+                        <label for="vbDeveloper">Developer / Creator</label>
+                        <input type="text" id="vbDeveloper" class="form-control" required placeholder="e.g. Crypton Future Media">
+                    </div>
+                    <div class="form-group">
+                        <label for="vbEngine">Engine / Software</label>
+                        <select id="vbEngine" class="form-control" required>
+                            <option value="" disabled selected>Select Engine</option>
+                            <option value="Vocaloid">Vocaloid</option>
+                            <option value="UTAU">UTAU</option>
+                            <option value="Synthesizer V">Synthesizer V</option>
+                            <option value="CeVIO AI">CeVIO AI</option>
+                            <option value="NEUTRINO">NEUTRINO</option>
+                            <option value="Other">Other / Open Source</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vbLanguage">Language</label>
+                        <input type="text" id="vbLanguage" class="form-control" required placeholder="e.g. Japanese, English, Bilingual">
+                    </div>
+                    <div class="form-group">
+                        <label for="vbDemo">Official Audio/Video Demo Link</label>
+                        <input type="url" id="vbDemo" class="form-control" required placeholder="https://youtube.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label for="vbSummary">Short Summary</label>
+                        <textarea id="vbSummary" class="form-control" required placeholder="Brief description of the voice character and tone..."></textarea>
+                    </div>
 
-    <div id="view-voicebanks" class="tab-view main-layout active">
-        <aside class="form-section" id="vbFormContainer">
-            <h2 id="vbFormTitle">Upload Voicebank</h2>
-            <form id="voicebankForm">
-                <input type="hidden" id="editingVersionId" value="">
-                
-                <div class="form-group">
-                    <label for="vbId">Character ID (e.g., MIKU, IA):</label>
-                    <input type="text" id="vbId" placeholder="e.g., MIKU" required style="text-transform: uppercase;">
-                </div>
-                <div class="form-group">
-                    <label for="vbName">Version Name / Append:</label>
-                    <input type="text" id="vbName" placeholder="e.g., Hatsune Miku V4X Dark" required>
-                </div>
-                <div class="form-group">
-                    <label for="vbDemo">Demo Song URL (Audio) <span style="color:#52525b; font-size:0.75rem;">(Optional)</span>:</label>
-                    <input type="url" id="vbDemo" placeholder="https://example.com/audio.mp3">
-                </div>
-                <div class="form-group">
-                    <label for="vbImg">Version Image URL:</label>
-                    <input type="url" id="vbImg" placeholder="https://example.com/image.jpg" required>
-                </div>
-                <div class="form-group">
-                    <label for="vbLang">Language(s) (Comma separated):</label>
-                    <input type="text" id="vbLang" placeholder="e.g., Japanese, English" required>
-                </div>
-                <div class="form-group">
-                    <label for="vbSoftware">Software / Engine (Comma separated):</label>
-                    <input type="text" id="vbSoftware" placeholder="e.g., VOCALOID6, Synthesizer V" required>
-                </div>
-                <div class="form-group">
-                    <label for="vbGenres">Optimal Genres / Styles (Comma separated):</label>
-                    <input type="text" id="vbGenres" placeholder="e.g., Pop, Metal, J-Rock">
-                </div>
-                <div class="form-group">
-                    <label for="vbDate">Release Date:</label>
-                    <input type="date" id="vbDate" required>
-                </div>
-                <div class="form-group">
-                    <label for="vbGender">Voice Gender:</label>
-                    <select id="vbGender">
-                        <option value="Female">Female</option>
-                        <option value="Male">Male</option>
-                        <option value="Both / Other">Both / Other</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="vbWeb">Official Website (URL):</label>
-                    <input type="url" id="vbWeb" placeholder="https://..." required>
-                </div>
-                <button type="submit" id="btnSubmitVb" class="btn-submit">Register Version</button>
-                <button type="button" id="btnCancelVbEdit" class="btn-cancel-edit" onclick="cancelVbEditing()">Cancel Edit</button>
-            </form>
-        </aside>
+                    <!-- Multi-Criteria System -->
+                    <div class="form-group">
+                        <label>Technical Evaluation</label>
+                        <div class="criteria-rating">
+                            <div class="criteria-row">
+                                <span class="criteria-label">Recording Quality</span>
+                                <div class="star-rating" data-criteria="recording">
+                                    <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+                                </div>
+                            </div>
+                            <div class="criteria-row">
+                                <span class="criteria-label">Linguistic Clarity</span>
+                                <div class="star-rating" data-criteria="clarity">
+                                    <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+                                </div>
+                            </div>
+                            <div class="criteria-row">
+                                <span class="criteria-label">Ease of Use</span>
+                                <div class="star-rating" data-criteria="ease">
+                                    <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <main class="catalog-section">
-            <div class="search-container">
-                <input type="text" id="searchBarVb" class="search-bar" placeholder="Search by character, version, languages, engines, genres...">
-                <button id="btnClearFilterVb" class="btn-clear-filter" onclick="clearFilter('vb')">Clear Filter</button>
-            </div>
-            <div id="catalogGridVb" class="catalog-grid"></div>
-            <div id="paginationVb" class="pagination"></div>
-        </main>
-    </div>
+                    <button type="submit" class="btn-submit">Add to Archive</button>
+                </form>
+            </aside>
 
-    <div id="view-softwares" class="tab-view main-layout">
-        <aside class="form-section">
-            <h2>Upload Engine</h2>
-            <form id="engineForm">
-                <div class="form-group">
-                    <label for="engId">Engine ID (e.g., SYNTH-V, VOCALOID):</label>
-                    <input type="text" id="engId" placeholder="e.g., SYNTH-V" required style="text-transform: uppercase;">
+            <main class="catalog-section">
+                <div class="search-container">
+                    <input type="text" id="searchBarVb" class="search-bar" placeholder="Search by voicebank name, creator, language, or engine...">
+                    <button id="btnClearFilterVb" class="btn-clear-filter" onclick="clearFilter('vb')">Clear Filter</button>
                 </div>
-                <div class="form-group">
-                    <label for="engName">Edition / Version Name:</label>
-                    <input type="text" id="engName" placeholder="e.g., Synthesizer V Studio Pro" required>
-                </div>
-                <div class="form-group">
-                    <label for="engImg">Logo / Boxart Image URL:</label>
-                    <input type="url" id="engImg" placeholder="https://example.com/logo.jpg" required>
-                </div>
-                <div class="form-group">
-                    <label for="engDev">Developer / Company:</label>
-                    <input type="text" id="engDev" placeholder="e.g., Dreamtonics" required>
-                </div>
-                <div class="form-group">
-                    <label for="engLicense">License Type:</label>
-                    <select id="engLicense">
-                        <option value="Paid">Paid (Licensed)</option>
-                        <option value="Free">Free (Open Source / Gratis)</option>
-                        <option value="Freemium">Freemium (Free Basic / Paid Pro)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="engDate">Release Date:</label>
-                    <input type="date" id="engDate" required>
-                </div>
-                <div class="form-group">
-                    <label for="engWeb">Official Website (URL):</label>
-                    <input type="url" id="engWeb" placeholder="https://..." required>
-                </div>
-                <button type="submit" id="btnSubmitEng" class="btn-submit">Register Engine</button>
-            </form>
-        </aside>
-
-        <main class="catalog-section">
-            <div class="search-container">
-                <input type="text" id="searchBarSw" class="search-bar" placeholder="Search by software name, developer, license...">
-                <button id="btnClearFilterSw" class="btn-clear-filter" onclick="clearFilter('sw')">Clear Filter</button>
-            </div>
-            <div id="catalogGridSw" class="catalog-grid"></div>
-            <div id="paginationSw" class="pagination"></div>
-        </main>
+                <div id="catalogGridVb" class="catalog-grid"></div>
+                <div id="paginationVb" class="pagination"></div>
+            </main>
+        </div>
     </div>
 
-</div>
+    <!-- External Google Forms Feedback/Report Anchor -->
+    <a href="https://docs.google.com/forms" target="_blank" class="floating-report-btn">
+        <span>⚠️ Report Bug / Suggestion</span>
+    </a>
 
-<div id="globalModal" class="modal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        <h2 id="modalTitle" class="modal-title">Log History</h2>
-        <p id="modalSubtitle" class="modal-subtitle">Sub</p>
-        <div id="modalList"></div>
-    </div>
-</div>
+    <!-- Core Scripting Logic -->
+    <script>
+        // Memory DB Mocking Arrays
+        let databaseVb = JSON.parse(localStorage.getItem('databaseVb')) || [
+            { id: 1, name: "Hatsune Miku V4X", developer: "Crypton Future Media", engine: "Vocaloid", language: "Japanese / English", demo: "https://youtube.com", summary: "A highly versatile industry-standard library known for its bright, iconic pop tone.", criteria: { recording: 5, clarity: 4, ease: 4 } },
+            { id: 2, name: "Kasane Teto SV", developer: "Twindrill / AHS", engine: "Synthesizer V", language: "Japanese / English", demo: "https://youtube.com", summary: "An incredibly lifelike and powerful transformation of the classic UTAU VIPER into SynthV.", criteria: { recording: 5, clarity: 5, ease: 5 } },
+            { id: 3, name: "Defoko (Uta Utane)", developer: "Ameya/Ayame", engine: "UTAU", language: "Japanese", demo: "https://youtube.com", summary: "The default robotic voicebank bundled natively with UTAU software installation packages.", criteria: { recording: 2, clarity: 3, ease: 2 } },
+            { id: 4, name: "KafU", developer: "KAMITSUBAKI STUDIO", engine: "CeVIO AI", language: "Japanese", demo: "https://youtube.com", summary: "Based completely on the distinct musical styling of singer Kaf, running on CeVIO neural engine.", criteria: { recording: 4, clarity: 4, ease: 4 } }
+        ];
 
-<audio id="globalAudioPlayer"></audio>
+        // Active State Selection Storage Objects
+        let selectedRatingsVb = { recording: 0, clarity: 0, ease: 0 };
+        let currentFilterVb = "";
 
-<script>
-    const SUPABASE_URL = "https://zkurztyywzcsnfhtzavp.supabase.co"; 
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprdXJ6dHl5d3pjc25maHR6YXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NjIxNjcsImV4cCI6MjA5NTMzODE2N30.iFetb5DZhsbGmRlYaE-HiG9TF8rJaIV6s9jsM5C07jc";
-    
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const itemsPerPage = 12;
-    
-    let localVbData = {}, sortedVbIds = [], filteredVbIds = [], currentPageVb = 1;
-    let localSwData = {}, sortedSwIds = [], filteredSwIds = [], currentPageSw = 1;
-    let cachedRatings = {}; 
-    let isEditingVb = false; 
+        // Navigation Pagination Tracking Indexes
+        let currentPageVb = 1;
+        const itemsPerPage = 6;
 
-    const globalAudio = document.getElementById('globalAudioPlayer');
+        document.addEventListener('DOMContentLoaded', () => {
+            initStars('voicebankForm', selectedRatingsVb);
+            renderCatalogVb();
 
-    function switchTab(target, button) {
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
-        button.classList.add('active');
-        document.getElementById(`view-${target}`).classList.add('active');
-        globalAudio.pause();
-    }
-
-    async function loadGlobalRatings() {
-        try {
-            const { data, error } = await _supabase.from('calificaciones').select('version_id, quality, clarity, usability, versatility');
-            if (error) return;
-            
-            let accum = {};
-            data.forEach(r => {
-                if(!accum[r.version_id]) accum[r.version_id] = { quality: 0, clarity: 0, usability: 0, versatility: 0, count: 0 };
-                accum[r.version_id].quality += r.quality;
-                accum[r.version_id].clarity += r.clarity;
-                accum[r.version_id].usability += r.usability;
-                accum[r.version_id].versatility += r.versatility;
-                accum[r.version_id].count += 1;
+            // Dynamic Search Action Triggers
+            document.getElementById('searchBarVb').addEventListener('input', (e) => {
+                currentFilterVb = e.target.value.trim().toLowerCase();
+                currentPageVb = 1;
+                toggleClearFilterBtn('vb', currentFilterVb);
+                renderCatalogVb();
             });
 
-            cachedRatings = {};
-            Object.keys(accum).forEach(vId => {
-                let totalVotes = accum[vId].count;
-                let avgQ = accum[vId].quality / totalVotes;
-                let avgC = accum[vId].clarity / totalVotes;
-                let avgU = accum[vId].usability / totalVotes;
-                let avgV = accum[vId].versatility / totalVotes;
-                let globalAvg = (avgQ + avgC + avgU + avgV) / 4;
-
-                cachedRatings[vId] = {
-                    quality: avgQ.toFixed(1),
-                    clarity: avgC.toFixed(1),
-                    usability: avgU.toFixed(1),
-                    versatility: avgV.toFixed(1),
-                    global: globalAvg.toFixed(1),
-                    count: totalVotes
-                };
-            });
-        } catch(e) { console.error(e); }
-    }
-
-    async function loadVoicebanks() {
-        await loadGlobalRatings();
-        const { data, error } = await _supabase.from('personajes').select(`id, gender, versiones ( id, name, demo, img, lang, software, genres, date, web, created_at )`);
-        if (error) return console.error(error.message);
-
-        localVbData = {};
-        data.forEach(char => {
-            if(char.versiones && char.versiones.length > 0) {
-                const sortedVersions = char.versiones.sort((a, b) => new Date(a.date) - new Date(b.date));
-                let displayGender = (char.gender === "Femenino" || char.gender === "Female") ? "Female" : (char.gender === "Masculino" || char.gender === "Male" ? "Male" : "Other");
-                localVbData[char.id] = { id: char.id, gender: displayGender, versions: sortedVersions, latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) };
-            }
+            // Form Submit Interceptions
+            document.getElementById('voicebankForm').addEventListener('submit', handleVbSubmit);
         });
-        sortedVbIds = Object.keys(localVbData).sort((a, b) => localVbData[b].latestReleaseDate - localVbData[a].latestReleaseDate);
-        applyFilterVb();
-    }
 
-    document.getElementById('voicebankForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btnSubmitVb');
-        btn.disabled = true; btn.innerText = "Saving...";
-        const idInput = document.getElementById('vbId').value.trim().toUpperCase();
-        
-        try {
-            const { error: charError } = await _supabase.from('personajes').upsert({ id: idInput, gender: document.getElementById('vbGender').value });
-            if (charError) throw new Error(charError.message);
-            
-            const versionPayload = {
-                personaje_id: idInput, name: document.getElementById('vbName').value, 
-                demo: document.getElementById('vbDemo').value.trim() || "",
-                img: document.getElementById('vbImg').value, lang: document.getElementById('vbLang').value,
-                software: document.getElementById('vbSoftware').value, genres: document.getElementById('vbGenres').value, 
-                date: document.getElementById('vbDate').value, web: document.getElementById('vbWeb').value
+        // Interactive Criteria Star Functionality
+        function initStars(formId, ratingStore) {
+            const container = document.getElementById(formId);
+            const engines = container.querySelectorAll('.star-rating');
+            engines.forEach(eng => {
+                const criteria = eng.getAttribute('data-criteria');
+                const stars = eng.querySelectorAll('span');
+                stars.forEach(star => {
+                    star.addEventListener('click', () => {
+                        const val = parseInt(star.getAttribute('data-val'));
+                        ratingStore[criteria] = val;
+                        stars.forEach(s => {
+                            const sVal = parseInt(s.getAttribute('data-val'));
+                            if (sVal <= val) s.classList.add('selected');
+                            else s.classList.remove('selected');
+                        });
+                    });
+                });
+            });
+        }
+
+        function clearStars(formId, ratingStore) {
+            Object.keys(ratingStore).forEach(k => ratingStore[k] = 0);
+            const container = document.getElementById(formId);
+            container.querySelectorAll('.star-rating span').forEach(s => s.classList.remove('selected'));
+        }
+
+        // Functional Filter Visibility Interlocking
+        function toggleClearFilterBtn(type, val) {
+            const btn = type === 'vb' ? document.getElementById('btnClearFilterVb') : null;
+            if(!btn) return;
+            if(val && val.length > 0) btn.style.display = 'block';
+            else btn.style.display = 'none';
+        }
+
+        function clearFilter(type) {
+            if(type === 'vb') {
+                currentFilterVb = "";
+                document.getElementById('searchBarVb').value = "";
+                toggleClearFilterBtn('vb', '');
+                renderCatalogVb();
+            }
+        }
+
+        // Form Submission Handlers
+        function handleVbSubmit(e) {
+            e.preventDefault();
+            if(selectedRatingsVb.recording === 0 || selectedRatingsVb.clarity === 0 || selectedRatingsVb.ease === 0) {
+                alert('Please provide evaluation star points for all technical criteria metrics.');
+                return;
+            }
+
+            const newVb = {
+                id: Date.now(),
+                name: document.getElementById('vbName').value.trim(),
+                developer: document.getElementById('vbDeveloper').value.trim(),
+                engine: document.getElementById('vbEngine').value,
+                language: document.getElementById('vbLanguage').value.trim(),
+                demo: document.getElementById('vbDemo').value.trim(),
+                summary: document.getElementById('vbSummary').value.trim(),
+                criteria: { ...selectedRatingsVb }
             };
 
-            if (isEditingVb) {
-                versionPayload.id = parseInt(document.getElementById('editingVersionId').value);
-                await _supabase.from('versiones').upsert(versionPayload);
-                cancelVbEditing();
-            } else {
-                await _supabase.from('versiones').insert(versionPayload);
-                document.getElementById('voicebankForm').reset();
+            databaseVb.unshift(newVb);
+            localStorage.setItem('databaseVb', JSON.stringify(databaseVb));
+            
+            document.getElementById('voicebankForm').reset();
+            clearStars('voicebankForm', selectedRatingsVb);
+            renderCatalogVb();
+        }
+
+        // Card Destruction Methods
+        function deleteVb(id) {
+            if(confirm("Are you sure you want to completely remove this entry from your structural archive history?")) {
+                databaseVb = databaseVb.filter(x => x.id !== id);
+                localStorage.setItem('databaseVb', JSON.stringify(databaseVb));
+                renderCatalogVb();
             }
-            await loadVoicebanks();
-            alert("¡Voicebank guardado!");
-        } catch (x) { alert(x.message); } finally { btn.disabled = false; btn.innerText = isEditingVb ? "Update Version" : "Register Version"; }
-    });
+        }
 
-    window.startVbEditDirect = function(charId, versionId) {
-        const char = localVbData[charId]; const targetedVersion = char.versions.find(v => v.id === versionId);
-        if (!targetedVersion) return;
-        isEditingVb = true;
-        const container = document.getElementById('vbFormContainer'); container.classList.add('editing-mode');
-        document.getElementById('vbFormTitle').innerText = `⚠️ Editing: ${charId}`;
-        document.getElementById('btnSubmitVb').innerText = "Update Version";
-        document.getElementById('btnCancelVbEdit').style.display = "block";
-        document.getElementById('editingVersionId').value = targetedVersion.id;
-        document.getElementById('vbId').value = char.id;
-        document.getElementById('vbName').value = targetedVersion.name;
-        document.getElementById('vbDemo').value = targetedVersion.demo || "";
-        document.getElementById('vbImg').value = targetedVersion.img;
-        document.getElementById('vbLang').value = targetedVersion.lang;
-        document.getElementById('vbSoftware').value = targetedVersion.software;
-        document.getElementById('vbGenres').value = targetedVersion.genres || "";
-        document.getElementById('vbDate').value = targetedVersion.date;
-        document.getElementById('vbGender').value = char.gender;
-        document.getElementById('vbWeb').value = targetedVersion.web;
-        closeModal(); container.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
-    };
-
-    window.cancelVbEditing = function() {
-        isEditingVb = false;
-        document.getElementById('vbFormContainer').classList.remove('editing-mode');
-        document.getElementById('vbFormTitle').innerText = "Upload Voicebank";
-        document.getElementById('btnSubmitVb').innerText = "Register Version";
-        document.getElementById('btnCancelVbEdit').style.display = "none";
-        document.getElementById('voicebankForm').reset();
-    };
-
-    function renderCatalogVb(page) {
-        const grid = document.getElementById('catalogGridVb'); grid.innerHTML = "";
-        if (filteredVbIds.length === 0) { grid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#52525b;'>No voicebanks found.</p>"; return; }
-
-        let paginated = filteredVbIds.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-        paginated.forEach(id => {
-            const char = localVbData[id]; const latest = char.versions[char.versions.length - 1];
-            const audioBoxHtml = (latest.demo && latest.demo.trim() !== "") ? `<div class="audio-player-box"><button class="play-btn" onclick="event.stopPropagation(); playAudio('${latest.demo}', this)">▶</button></div>` : '';
-            const ratingCache = cachedRatings[latest.id];
-            const ratingTextHtml = ratingCache ? `<span style="color:#facc15; font-weight:700; margin-left: 8px;">★ ${ratingCache.global}</span>` : '';
-
-            const card = document.createElement('article'); card.className = 'card'; card.setAttribute('onclick', `openModalVb('${char.id}')`);
-            card.innerHTML = `
-                <div class="card-img-box"><img src="${latest.img}">${audioBoxHtml}</div>
-                <div class="card-body">
-                    <span class="meta-id-tag">${char.id} (${char.versions.length})</span>
-                    <h3 class="card-title">${latest.name}</h3>
-                    <div class="meta-line" style="font-size: 0.75rem; color:#71717a; margin-bottom: 2px;">Update: ${latest.date}${ratingTextHtml}</div>
-                    <div class="tags-container">
-                        ${latest.lang.split(',').slice(0,2).map(l => `<span class="tag" onclick="event.stopPropagation(); filterTagVb('${l.trim()}');">${l.trim()}</span>`).join('')}
-                        ${latest.software.split(',').slice(0,1).map(s => `<span class="tag tag-software" onclick="event.stopPropagation(); filterTagVb('${s.trim()}');">${s.trim()}</span>`).join('')}
-                    </div>
-                </div>
-                <div class="card-action-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>`;
-            grid.appendChild(card);
-        });
-        renderPaginationUI('paginationVb', filteredVbIds.length, page, (p) => { currentPageVb = p; renderCatalogVb(p); });
-    }
-
-    function applyFilterVb() {
-        const query = document.getElementById('searchBarVb').value.toLowerCase().trim();
-        document.getElementById('btnClearFilterVb').style.display = query ? "block" : "none";
-        filteredVbIds = sortedVbIds.filter(id => {
-            const c = localVbData[id];
-            return c.id.toLowerCase().includes(query) || c.gender.toLowerCase().includes(query) || c.versions.some(v => v.name.toLowerCase().includes(query) || v.software.toLowerCase().includes(query) || v.lang.toLowerCase().includes(query) || (v.genres && v.genres.toLowerCase().includes(query)));
-        });
-        currentPageVb = 1; renderCatalogVb(currentPageVb);
-    }
-    
-    window.filterTagVb = function(t) { 
-        const searchBar = document.getElementById('searchBarVb');
-        searchBar.value = t; applyFilterVb(); searchBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-    document.getElementById('searchBarVb').addEventListener('input', applyFilterVb);
-
-    async function loadSoftwares() {
-        const { data, error } = await _supabase.from('engines').select(`id, developer, license, engine_versions ( name, img, release_date, official_web, created_at )`);
-        if (error) return console.error(error.message);
-        localSwData = {};
-        data.forEach(eng => {
-            if(eng.engine_versions && eng.engine_versions.length > 0) {
-                const sortedVersions = eng.engine_versions.sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
-                localSwData[eng.id] = { id: eng.id, developer: eng.developer, license: eng.license, versions: sortedVersions, latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].release_date) };
+        // Surprise Me Action Trigger
+        function triggerSurpriseVb() {
+            if(databaseVb.length === 0) {
+                alert("The local voicebank archive database is completely empty.");
+                return;
             }
-        });
-        sortedSwIds = Object.keys(localSwData).sort((a, b) => localSwData[b].latestReleaseDate - localSwData[a].latestReleaseDate);
-        applyFilterSw();
-    }
-
-    document.getElementById('engineForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btnSubmitEng'); btn.disabled = true; btn.innerText = "Saving...";
-        try {
-            await _supabase.from('engines').upsert({ id: document.getElementById('engId').value.trim().toUpperCase(), developer: document.getElementById('engDev').value, license: document.getElementById('engLicense').value });
-            await _supabase.from('engine_versions').insert({ engine_id: document.getElementById('engId').value.trim().toUpperCase(), name: document.getElementById('engName').value, img: document.getElementById('engImg').value, release_date: document.getElementById('engDate').value, official_web: document.getElementById('engWeb').value });
-            document.getElementById('engineForm').reset(); await loadSoftwares(); alert("Engine registrado.");
-        } catch (x) { alert(x.message); } finally { btn.disabled = false; btn.innerText = "Register Engine"; }
-    });
-
-    function renderCatalogSw(page) {
-        const grid = document.getElementById('catalogGridSw'); grid.innerHTML = "";
-        if (filteredSwIds.length === 0) { grid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#52525b;'>No systems found.</p>"; return; }
-        let paginated = filteredSwIds.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-        paginated.forEach(id => {
-            const eng = localSwData[id]; const latest = eng.versions[eng.versions.length - 1];
-            let licClass = eng.license.toLowerCase() === "free" ? "tag-free" : (eng.license.toLowerCase() === "freemium" ? "tag-freemium" : "tag-paid");
-            const card = document.createElement('article'); card.className = 'card'; card.setAttribute('onclick', `openModalSw('${eng.id}')`);
-            card.innerHTML = `
-                <div class="card-img-box"><img src="${latest.img}"></div>
-                <div class="card-body">
-                    <span class="meta-id-tag">${eng.id}</span>
-                    <h3 class="card-title">${latest.name}</h3>
-                    <div class="meta-line" style="font-size: 0.75rem; color:#71717a;">Dev: ${eng.developer}</div>
-                    <div class="tags-container"><span class="tag ${licClass}" onclick="event.stopPropagation(); filterTagSw('${eng.license}')">${eng.license}</span></div>
-                </div>
-                <div class="card-action-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>`;
-            grid.appendChild(card);
-        });
-        renderPaginationUI('paginationSw', filteredSwIds.length, page, (p) => { currentPageSw = p; renderCatalogSw(p); });
-    }
-
-    function applyFilterSw() {
-        const query = document.getElementById('searchBarSw').value.toLowerCase().trim();
-        document.getElementById('btnClearFilterSw').style.display = query ? "block" : "none";
-        filteredSwIds = sortedSwIds.filter(id => {
-            const e = localSwData[id]; return e.id.toLowerCase().includes(query) || e.developer.toLowerCase().includes(query) || e.license.toLowerCase().includes(query) || e.versions.some(v => v.name.toLowerCase().includes(query));
-        });
-        currentPageSw = 1; renderCatalogSw(currentPageSw);
-    }
-    window.filterTagSw = function(t) { document.getElementById('searchBarSw').value = t; applyFilterSw(); };
-    document.getElementById('searchBarSw').addEventListener('input', applyFilterSw);
-
-    function renderPaginationUI(containerId, totalItems, activePage, callback) {
-        const container = document.getElementById(containerId); container.innerHTML = "";
-        const pages = Math.ceil(totalItems / itemsPerPage); if (pages <= 1) return;
-        for (let i = 1; i <= pages; i++) {
-            const btn = document.createElement('button'); btn.className = `page-btn ${i === activePage ? 'active' : ''}`; btn.innerText = i;
-            btn.onclick = () => { callback(i); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-            container.appendChild(btn);
+            const randomIndex = Math.floor(Math.random() * databaseVb.length);
+            const targetedItem = databaseVb[randomIndex];
+            
+            currentFilterVb = targetedItem.name.toLowerCase();
+            document.getElementById('searchBarVb').value = targetedItem.name;
+            toggleClearFilterBtn('vb', currentFilterVb);
+            currentPageVb = 1;
+            renderCatalogVb();
         }
-    }
 
-    window.clearFilter = function(mode) {
-        if (mode === 'vb') { document.getElementById('searchBarVb').value = ""; applyFilterVb(); }
-        else { document.getElementById('searchBarSw').value = ""; applyFilterSw(); }
-    };
+        // Data Catalog UI Compilers
+        function renderCatalogVb() {
+            const grid = document.getElementById('catalogGridVb');
+            grid.innerHTML = "";
 
-    window.openModalVb = function(id) {
-        globalAudio.pause();
-        const c = localVbData[id]; const modal = document.getElementById('globalModal');
-        document.getElementById('modalTitle').innerText = `${id} - Archival Logs`;
-        document.getElementById('modalSubtitle').innerText = `Total alternative configurations: ${c.versions.length}`;
-        const list = document.getElementById('modalList'); list.innerHTML = "";
-        
-        [...c.versions].reverse().forEach(v => {
-            const modalPlayBtnHtml = (v.demo && v.demo.trim() !== "") ? `
-                <div style="margin-top: 6px; width: 100%; max-width: 280px;">
-                    <audio controls src="${v.demo}" style="width: 100%; height: 32px; border-radius: 8px; background: #1a1a22;"></audio>
-                </div>` : '';
-                
-            const rateData = cachedRatings[v.id] || { quality: 0, clarity: 0, usability: 0, versatility: 0, global: "0.0", count: 0 };
-            const hasVotedLocal = localStorage.getItem(`voted_v_${v.id}`);
-            const btnText = hasVotedLocal ? "[ You already evaluated this bank ]" : "[ Evaluate this bank ]";
-            const btnDisabledAttr = hasVotedLocal ? "disabled" : "";
+            let processed = databaseVb;
+            if(currentFilterVb) {
+                processed = processed.filter(item => 
+                    item.name.toLowerCase().includes(currentFilterVb) ||
+                    item.developer.toLowerCase().includes(currentFilterVb) ||
+                    item.engine.toLowerCase().includes(currentFilterVb) ||
+                    item.language.toLowerCase().includes(currentFilterVb)
+                );
+            }
 
-            const isDownloadLink = v.web.includes('drive.google') || v.web.includes('mega.nz') || v.web.includes('github') || v.software.toLowerCase().includes('utau');
-            const actionButtonText = isDownloadLink ? "📥 Download Voicebank" : "🌐 Official Site ↗";
+            if(processed.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 3rem 0;">No archival voicebank entries match current parameters.</div>`;
+                document.getElementById('paginationVb').innerHTML = "";
+                return;
+            }
 
-            list.innerHTML += `
-                <div class="version-item" style="flex-direction: column; gap: 12px;">
-                    <div style="display: flex; gap: 20px; width: 100%;">
-                        <img class="version-img" src="${v.img}">
-                        <div class="version-details">
-                            <div class="version-name">${v.name}</div>
-                            
-                            <div class="tags-container" style="margin-bottom: 4px; margin-top: 2px;">
-                                ${v.software.split(',').map(s => `<span class="tag tag-software" onclick="event.stopPropagation(); closeModal(); filterTagVb('${s.trim()}');">${s.trim()}</span>`).join('')}
-                                ${v.lang.split(',').map(l => `<span class="tag" onclick="event.stopPropagation(); closeModal(); filterTagVb('${l.trim()}');">${l.trim()}</span>`).join('')}
-                                ${v.genres ? v.genres.split(',').map(g => `<span class="tag" style="background: rgba(168, 85, 247, 0.06); border-color: rgba(168, 85, 247, 0.15); color: #c084fc;" onclick="event.stopPropagation(); closeModal(); filterTagVb('${g.trim()}');">${g.trim()}</span>`).join('') : ''}
-                            </div>
+            const totalPages = Math.ceil(processed.length / itemsPerPage);
+            if(currentPageVb > totalPages) currentPageVb = totalPages || 1;
+            
+            const startIdx = (currentPageVb - 1) * itemsPerPage;
+            const targetSlice = processed.slice(startIdx, startIdx + itemsPerPage);
 
-                            <div class="meta-line"><strong>Release Date:</strong> ${v.date} | <strong>Gender:</strong> ${c.gender}</div>
-                            
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; width: 100%;">
-                                ${modalPlayBtnHtml}
-                                <button class="btn-modal-edit" style="height: 32px; margin-top: 6px;" onclick="startVbEditDirect('${id}', ${v.id})">✏️ Edit This</button>
-                            </div>
+            targetSlice.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <div class="card-title" title="${item.name}">${item.name}</div>
+                            <div class="card-subtitle" title="By ${item.developer}">By ${item.developer}</div>
                         </div>
-                        <a href="${v.web}" target="_blank" class="btn-official-web">${actionButtonText}</a>
+                        <span class="engine-tag">${item.engine}</span>
                     </div>
-                    
-                    <div class="ratings-panel" id="ratePanel-${v.id}">
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.02); padding-bottom:4px; margin-bottom:2px;">
-                            <span style="font-size:0.75rem; font-weight:700; color:#ffffff;">📊 COMMUNITY EVALUATION (★ ${rateData.global})</span>
-                            <span style="font-size:0.65rem; color:#71717a;">${rateData.count} review(s)</span>
+                    <div class="card-body">
+                        <div class="card-meta-grid">
+                            <div class="meta-item"><span>Language</span>${item.language}</div>
                         </div>
-                        <div id="rateDisplayContainer-${v.id}" style="display:flex; flex-direction:column; gap:6px;">
-                            <div class="rating-row">
-                                <span class="rating-label">Vocal Quality</span>
-                                <div class="rating-bar-container"><div class="rating-bar-fill" style="width:${rateData.quality * 20}%"></div></div>
-                                <span class="rating-value">${rateData.quality}</span>
+                        <p class="card-description">${item.summary}</p>
+                        <div class="card-ratings-display">
+                            <div class="rating-display-row">
+                                <span>Recording Quality</span>
+                                <span class="rating-display-stars">${"★".repeat(item.criteria.recording)}${"☆".repeat(5-item.criteria.recording)}</span>
                             </div>
-                            <div class="rating-row">
-                                <span class="rating-label">Intelligibility</span>
-                                <div class="rating-bar-container"><div class="rating-bar-fill" style="width:${rateData.clarity * 20}%"></div></div>
-                                <span class="rating-value">${rateData.clarity}</span>
+                            <div class="rating-display-row">
+                                <span>Linguistic Clarity</span>
+                                <span class="rating-display-stars">${"★".repeat(item.criteria.clarity)}${"☆".repeat(5-item.criteria.clarity)}</span>
                             </div>
-                            <div class="rating-row">
-                                <span class="rating-label">Usability</span>
-                                <div class="rating-bar-container"><div class="rating-bar-fill" style="width:${rateData.usability * 20}%"></div></div>
-                                <span class="rating-value">${rateData.usability}</span>
+                            <div class="rating-display-row">
+                                <span>Ease of Use</span>
+                                <span class="rating-display-stars">${"★".repeat(item.criteria.ease)}${"☆".repeat(5-item.criteria.ease)}</span>
                             </div>
-                            <div class="rating-row">
-                                <span class="rating-label">Versatility</span>
-                                <div class="rating-bar-container"><div class="rating-bar-fill" style="width:${rateData.versatility * 20}%"></div></div>
-                                <span class="rating-value">${rateData.versatility}</span>
-                            </div>
-                            <button class="rate-toggle-btn" ${btnDisabledAttr} onclick="toggleRateMode(${v.id})">${btnText}</button>
                         </div>
                     </div>
-                </div>`;
-        });
-        modal.style.display = "flex";
-    };
+                    <div class="card-actions">
+                        <a href="${item.demo}" target="_blank" class="card-btn card-btn-primary">Watch/Listen Demo</a>
+                        <button onclick="deleteVb(${item.id})" class="card-btn card-btn-danger" title="Delete Entry">🗑️</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
 
-    window.toggleRateMode = function(versionId) {
-        const container = document.getElementById(`rateDisplayContainer-${versionId}`);
-        container.innerHTML = `
-            <div class="rating-row">
-                <span class="rating-label">Vocal Quality</span>
-                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sl-q-${versionId}" oninput="document.getElementById('vl-q-${versionId}').innerText=this.value">
-                <span class="rating-value" id="vl-q-${versionId}">5</span>
-            </div>
-            <div class="rating-row">
-                <span class="rating-label">Intelligibility</span>
-                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sl-c-${versionId}" oninput="document.getElementById('vl-c-${versionId}').innerText=this.value">
-                <span class="rating-value" id="vl-c-${versionId}">5</span>
-            </div>
-            <div class="rating-row">
-                <span class="rating-label">Usability</span>
-                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sl-u-${versionId}" oninput="document.getElementById('vl-u-${versionId}').innerText=this.value">
-                <span class="rating-value" id="vl-u-${versionId}">5</span>
-            </div>
-            <div class="rating-row">
-                <span class="rating-label">Versatility</span>
-                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sl-v-${versionId}" oninput="document.getElementById('vl-v-${versionId}').innerText=this.value">
-                <span class="rating-value" id="vl-v-${versionId}">5</span>
-            </div>
-            <div style="display:flex; gap:10px; align-items:center;">
-                <button class="btn-submit-vote" id="btnVote-${versionId}" onclick="submitRating(${versionId})">[ Submit Evaluation ]</button>
-                <button class="rate-toggle-btn" style="margin-top:6px;" onclick="reloadModalAfterVote()">[ Cancel ]</button>
-            </div>`;
-    };
-
-    window.submitRating = async function(versionId) {
-        const actionBtn = document.getElementById(`btnVote-${versionId}`);
-        actionBtn.disabled = true; actionBtn.innerText = "[ Securing Connection... ]";
-
-        let clientIp = "0.0.0.0";
-        try {
-            const res = await fetch('https://api.ipify.org?format=json');
-            const data = await res.json();
-            if(data && data.ip) clientIp = data.ip;
-        } catch(ipErr) { console.warn("Fallo al resolver IP."); }
-
-        const q = parseInt(document.getElementById(`sl-q-${versionId}`).value);
-        const c = parseInt(document.getElementById(`sl-c-${versionId}`).value);
-        const u = parseInt(document.getElementById(`sl-u-${versionId}`).value);
-        const v = parseInt(document.getElementById(`sl-v-${versionId}`).value);
-
-        const { error } = await _supabase.from('calificaciones').insert({
-            version_id: versionId, quality: q, clarity: c, usability: u, versatility: v, user_ip: clientIp
-        });
-
-        if (error) {
-            actionBtn.disabled = false; actionBtn.innerText = "[ Submit Evaluation ]";
-            if(error.code === "23505") {
-                alert("🔒 Error de Seguridad: Tu dirección IP ya ha registrado un voto para este banco de voz hoy.");
-                localStorage.setItem(`voted_v_${versionId}`, "true"); reloadModalAfterVote();
-            } else { alert("No se pudo guardar: " + error.message); }
-        } else {
-            localStorage.setItem(`voted_v_${versionId}`, "true");
-            alert("¡Evaluación técnica procesada y firmada con éxito!");
-            reloadModalAfterVote();
+            renderPagination('paginationVb', totalPages, currentPageVb, (p) => {
+                currentPageVb = p;
+                renderCatalogVb();
+            });
         }
-    };
 
-    window.openModalSw = function(id) {
-        const e = localSwData[id]; const modal = document.getElementById('globalModal');
-        document.getElementById('modalTitle').innerText = `${id} - Deploy History`;
-        document.getElementById('modalSubtitle').innerText = `Total architectural releases: ${e.versions.length}`;
-        const list = document.getElementById('modalList'); list.innerHTML = "";
-        [...e.versions].reverse().forEach(v => {
-            list.innerHTML += `
-                <div class="version-item">
-                    <img class="version-img" src="${v.img}">
-                    <div class="version-details">
-                        <div class="version-name">${v.name}</div>
-                        <div class="meta-line"><strong>Developer:</strong> ${e.developer}</div>
-                        <div class="meta-line"><strong>Release Date:</strong> ${v.release_date} | <strong>License:</strong> ${e.license}</div>
-                    </div><a href="${v.official_web}" target="_blank" class="btn-official-web">Visit Site ↗</a>
-                </div>`;
-        });
-        modal.style.display = "flex";
-    };
+        // Universal Shared Core UI Pagination Elements Generator
+        function renderPagination(containerId, total, current, callback) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = "";
+            if (total <= 1) return;
 
-    window.closeModal = function() { document.getElementById('globalModal').style.display = "none"; globalAudio.pause(); };
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.innerHTML = '‹';
+            prevBtn.disabled = current === 1;
+            prevBtn.addEventListener('click', () => callback(current - 1));
+            container.appendChild(prevBtn);
 
-    window.playAudio = function(url, button) {
-        if (globalAudio.src === url && !globalAudio.paused) { globalAudio.pause(); button.innerHTML = button.classList.contains('play-btn') ? "▶" : "▶ Play Demo"; } 
-        else {
-            document.querySelectorAll('.play-btn, .modal-play-btn').forEach(b => b.innerHTML = b.classList.contains('play-btn') ? "▶" : "▶ Play Demo");
-            globalAudio.src = url; globalAudio.play(); button.innerHTML = "⏸";
+            for (let i = 1; i <= total; i++) {
+                const pBtn = document.createElement('button');
+                pBtn.className = `page-btn ${i === current ? 'active' : ''}`;
+                pBtn.innerText = i;
+                pBtn.addEventListener('click', () => callback(i));
+                container.appendChild(pBtn);
+            }
+
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.innerHTML = '›';
+            nextBtn.disabled = current === total;
+            nextBtn.addEventListener('click', () => callback(current + 1));
+            container.appendChild(nextBtn);
         }
-    };
-    
-    window.triggerSurpriseVb = function() {
-        globalAudio.pause();
-        if (!sortedVbIds || sortedVbIds.length === 0) return;
-        const vbTabBtn = document.querySelector(".nav-menu .nav-btn[onclick*='voicebanks']");
-        if (vbTabBtn) switchTab('voicebanks', vbTabBtn);
-        const randomCharacterId = sortedVbIds[Math.floor(Math.random() * sortedVbIds.length)];
-        openModalVb(randomCharacterId);
-    };
-
-    window.reloadModalAfterVote = async function() {
-        const titleText = document.getElementById('modalTitle').innerText;
-        const charId = titleText.split(' - ')[0];
-        await loadVoicebanks();
-        if(charId) openModalVb(charId);
-    };
-
-    loadVoicebanks();
-    loadSoftwares();
-</script>
-
-<a href="https://forms.gle/abZytzv448kRGf8r7" target="_blank" class="btn-floating-feedback">📢 Suggest or Report Error</a>
-
+    </script>
 </body>
 </html>
