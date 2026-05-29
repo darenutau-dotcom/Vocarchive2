@@ -246,8 +246,8 @@
     <div class="nav-container">
         <div class="nav-logo">VocalArchive<span>.db</span></div>
         <ul class="nav-menu">
-            <li><a href="index.html" class="nav-btn active" style="text-decoration: none; display: inline-block;">Voicebanks</a></li>
-            <li><a href="softwares.html" class="nav-btn" style="text-decoration: none; display: inline-block;">Softwares & Engines</a></li>
+            <li><button class="nav-btn active" onclick="switchTab('voicebanks', this)">Voicebanks</button></li>
+            <li><button class="nav-btn" onclick="switchTab('softwares', this)">Softwares & Engines</button></li>
             <li><button class="nav-btn" onclick="triggerSurpriseVb()" style="color: #facc15; font-weight: 800;">🎲 Surprise Me</button></li>
         </ul>
     </div>
@@ -319,6 +319,57 @@
             <div id="paginationVb" class="pagination"></div>
         </main>
     </div>
+
+    <div id="view-softwares" class="tab-view main-layout">
+        <aside class="form-section">
+            <h2>Upload Engine</h2>
+            <form id="engineForm">
+                <div class="form-group">
+                    <label for="engId">Engine ID (e.g., SYNTH-V, VOCALOID):</label>
+                    <input type="text" id="engId" placeholder="e.g., SYNTH-V" required style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label for="engName">Edition / Version Name:</label>
+                    <input type="text" id="engName" placeholder="e.g., Synthesizer V Studio Pro" required>
+                </div>
+                <div class="form-group">
+                    <label for="engImg">Logo / Boxart Image URL:</label>
+                    <input type="url" id="engImg" placeholder="https://example.com/logo.jpg" required>
+                </div>
+                <div class="form-group">
+                    <label for="engDev">Developer / Company:</label>
+                    <input type="text" id="engDev" placeholder="e.g., Dreamtonics" required>
+                </div>
+                <div class="form-group">
+                    <label for="engLicense">License Type:</label>
+                    <select id="engLicense">
+                        <option value="Paid">Paid (Licensed)</option>
+                        <option value="Free">Free (Open Source / Gratis)</option>
+                        <option value="Freemium">Freemium (Free Basic / Paid Pro)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="engDate">Release Date:</label>
+                    <input type="date" id="engDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="engWeb">Official Website (URL):</label>
+                    <input type="url" id="engWeb" placeholder="https://..." required>
+                </div>
+                <button type="submit" id="btnSubmitEng" class="btn-submit">Register Engine</button>
+            </form>
+        </aside>
+
+        <main class="catalog-section">
+            <div class="search-container">
+                <input type="text" id="searchBarSw" class="search-bar" placeholder="Search by software name, developer, license...">
+                <button id="btnClearFilterSw" class="btn-clear-filter" onclick="clearFilter('sw')">Clear Filter</button>
+            </div>
+            <div id="catalogGridSw" class="catalog-grid"></div>
+            <div id="paginationSw" class="pagination"></div>
+        </main>
+    </div>
+
 </div>
 
 <div id="globalModal" class="modal">
