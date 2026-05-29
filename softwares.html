@@ -3,400 +3,631 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Software & Engine Archive</title>
+    <title>Software & Engines Central Archive</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
         
-        body { background-color: #0f172a; color: #f1f5f9; padding: 30px 20px; }
+        body { 
+            background-color: #0b0b0e; 
+            color: #e4e4e7; 
+            padding-top: 80px; 
+            padding-bottom: 40px; 
+        }
         
-        .container { max-width: 1400px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 40px; }
-        header h1 { font-size: 2.2rem; color: #ffffff; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 5px; }
-        header p { color: #94a3b8; font-size: 0.95rem; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
         
-        .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 35px; }
-        @media (max-width: 1024px) { .main-layout { grid-template-columns: 1fr; } }
+        .navbar { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            background: rgba(11, 11, 14, 0.85); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04); 
+            z-index: 2000; 
+            backdrop-filter: blur(12px); 
+        }
+        .nav-container { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; }
+        .nav-logo { font-size: 1.25rem; font-weight: 800; color: #ffffff; letter-spacing: -0.025em; }
+        .nav-logo span { color: #a855f7; } 
+        .nav-menu { display: flex; gap: 10px; list-style: none; }
+        .nav-btn { 
+            background: transparent; 
+            border: none; 
+            color: #a1a1aa; 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .nav-btn:hover { color: #ffffff; background: rgba(255, 255, 255, 0.04); }
+        .nav-btn.active { color: #ffffff; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); }
 
-        /* Form */
-        .form-section { background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); height: fit-content; position: sticky; top: 20px; }
-        .form-section h2 { margin-bottom: 20px; font-size: 1.25rem; color: #ffffff; font-weight: 700; border-bottom: 2px solid #334155; padding-bottom: 8px; }
+        .tab-view { display: none; }
+        .tab-view.active { display: grid; }
+
+        .main-layout { display: grid; grid-template-columns: 340px 1fr; gap: 25px; margin-top: 20px; }
+
+        .form-section { 
+            background: #121216; 
+            padding: 25px; 
+            border-radius: 16px; 
+            border: 1px solid rgba(255, 255, 255, 0.04); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            height: fit-content; 
+            position: sticky; 
+            top: 100px; 
+            transition: all 0.3s; 
+        }
+        .form-section.editing-mode { border-color: #a855f7; box-shadow: 0 10px 25px rgba(168, 85, 247, 0.1); }
+        .form-section h2 { margin-bottom: 20px; font-size: 1.15rem; color: #ffffff; font-weight: 700; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; letter-spacing: -0.01em; }
+        .form-section.editing-mode h2 { color: #c084fc; border-bottom-color: rgba(168, 85, 247, 0.3); }
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-        .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #475569; border-radius: 6px; font-size: 0.9rem; color: #ffffff; transition: all 0.2s; background-color: #0f172a; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #e11d48; background-color: #0f172a; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25); }
-        .form-group input::placeholder { color: #475569; }
+        .form-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-group input, .form-group select { width: 100%; padding: 11px 14px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; font-size: 0.9rem; color: #ffffff; transition: all 0.2s; background-color: #1a1a22; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #a855f7; background-color: #1a1a22; box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15); }
+        .form-group input::placeholder { color: #52525b; }
         
-        .btn-submit { width: 100%; padding: 12px; background: #e11d48; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
-        .btn-submit:hover { background: #be123c; }
-        .btn-submit:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+        .btn-submit { width: 100%; padding: 12px; background: #a855f7; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
+        .btn-submit:hover { background: #9333ea; transform: translateY(-1px); }
+        .btn-submit:disabled { background: #27272a; color: #52525b; cursor: not-allowed; transform: none; }
+        
+        .btn-cancel-edit { display: none; width: 100%; padding: 10px; background: transparent; color: #a1a1aa; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; margin-top: 8px; text-align: center; transition: all 0.2s; }
+        .btn-cancel-edit:hover { background: rgba(255, 255, 255, 0.04); color: #ffffff; }
 
-        /* Search & Controls */
         .catalog-section { display: flex; flex-direction: column; gap: 25px; }
         .search-container { display: flex; gap: 10px; width: 100%; }
-        .search-bar { flex-grow: 1; padding: 14px 24px; border: 1px solid #334155; border-radius: 8px; font-size: 0.95rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2); background: #1e293b; color: #ffffff; transition: all 0.2s; }
-        .search-bar:focus { outline: none; border-color: #e11d48; box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.25); }
-        .search-bar::placeholder { color: #64748b; }
-        .btn-clear-filter { padding: 0 20px; background: #334155; border: 1px solid #475569; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #f1f5f9; cursor: pointer; display: none; }
-        .btn-clear-filter:hover { background: #475569; }
+        .search-bar { flex-grow: 1; padding: 14px 24px; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; font-size: 0.95rem; box-shadow: 0 4px 20px rgba(0,0,0,0.3); background: #121216; color: #ffffff; transition: all 0.2s; }
+        .search-bar:focus { outline: none; border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15); }
+        .search-bar::placeholder { color: #42424a; }
+        .btn-clear-filter { padding: 0 20px; background: #1a1a22; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 0.85rem; font-weight: 600; color: #f4f4f5; cursor: pointer; display: none; }
+        .btn-clear-filter:hover { background: rgba(255, 255, 255, 0.04); }
         
-        /* Grid Layout */
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
-        .card { background: #1e293b; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-height: 420px; }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4); border-color: #475569; }
+        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
         
-        /* Image Cover Box */
-        .card-img-box { width: 100%; aspect-ratio: 4/3; background: #0f172a; overflow: hidden; border-bottom: 1px solid #334155; }
+        .card { 
+            background: #121216; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            display: flex; 
+            align-items: center; 
+            gap: 16px;
+            padding: 16px; 
+            border: 1px solid rgba(255, 255, 255, 0.04); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            position: relative; 
+            cursor: pointer;
+        }
+        .card:hover { 
+            transform: translateY(-2px); 
+            background: #1a1a22; 
+            border-color: rgba(168, 85, 247, 0.3); 
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6); 
+        }
+
+        .card-img-box { width: 75px; height: 75px; border-radius: 12px; overflow: hidden; background: #0b0b0e; position: relative; flex-shrink: 0; }
         .card-img-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Card Content */
-        .card-body { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
-        .software-id { font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-        .card-title { font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 12px; line-height: 1.3; height: 46px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-body { padding: 0; display: flex; flex-direction: column; flex-grow: 1; min-width: 0; }
+        .meta-id-tag { font-size: 0.7rem; color: #71717a; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .card-title { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 4px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
-        .meta-line { font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; }
-        .meta-line strong { color: #cbd5e1; }
+        .tags-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .tag { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 4px; text-transform: uppercase; color: #a1a1aa; cursor: pointer; transition: all 0.15s; }
+        .tag:hover { background: #a855f7; color: white; border-color: #a855f7; }
         
-        /* Tags */
-        .tags-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; margin-bottom: 14px; }
-        .tag { font-size: 0.7rem; font-weight: 700; padding: 4px 8px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; text-transform: uppercase; color: #cbd5e1; cursor: pointer; transition: all 0.15s; }
-        .tag:hover { background: #e11d48; color: white; border-color: #e11d48; }
-        
-        /* License Specific Neon Color Tags */
-        .tag-free { background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.3); color: #4ade80; }
+        .tag-engine { background: rgba(168, 85, 247, 0.06); border-color: rgba(168, 85, 247, 0.15); color: #c084fc; }
+        .tag-engine:hover { background: #a855f7; color: white; }
+
+        .tag-free { background: rgba(34, 197, 94, 0.06); border-color: rgba(34, 197, 94, 0.15); color: #4ade80; }
         .tag-free:hover { background: #22c55e; color: white; }
-        .tag-paid { background: rgba(225, 29, 72, 0.1); border-color: rgba(225, 29, 72, 0.3); color: #f43f5e; }
-        .tag-paid:hover { background: #e11d48; color: white; }
-        .tag-freemium { background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3); color: #facc15; }
-        .tag-freemium:hover { background: #eab308; color: white; }
-
-        /* Bottom Button */
-        .card-actions { margin-top: auto; border-top: 1px solid #334155; padding-top: 15px; }
-        .btn-view-more { display: block; width: 100%; text-align: center; background: #0f172a; color: white; padding: 11px; text-decoration: none; font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #334155; cursor: pointer; transition: all 0.2s; }
-        .btn-view-more:hover { background: #e11d48; border-color: #e11d48; }
-
-        /* Pagination */
-        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
-        .page-btn { padding: 10px 16px; border: 1px solid #334155; background: #1e293b; cursor: pointer; border-radius: 6px; font-weight: 600; color: #cbd5e1; transition: all 0.2s; }
-        .page-btn:hover { border-color: #475569; background: #334155; }
-        .page-btn.active { background: #e11d48; color: white; border-color: #e11d48; }
-
-        /* MODAL */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); justify-content: center; align-items: center; z-index: 1000; padding: 20px; backdrop-filter: blur(6px); }
-        .modal-content { background: #1e293b; width: 100%; max-width: 750px; max-height: 85vh; border-radius: 12px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #334155; }
-        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #64748b; transition: color 0.2s; }
-        .close-modal:hover { color: #f1f5f9; }
-        .modal-title { font-size: 1.6rem; margin-bottom: 6px; color: #ffffff; font-weight: 800; }
-        .modal-subtitle { font-size: 0.9rem; color: #94a3b8; margin-bottom: 25px; border-bottom: 2px solid #334155; padding-bottom: 12px; }
+        .tag-paid { background: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .tag-paid:hover { background: #ef4444; color: white; }
         
-        .version-item { background: #0f172a; border: 1px solid #334155; padding: 20px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
-        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 6px; background: #1e293b; border: 1px solid #334155; }
+        .card-action-icon { width: 32px; height: 32px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; color: #43434a; flex-shrink: 0; transition: all 0.2s ease; }
+        .card:hover .card-action-icon { background: rgba(168, 85, 247, 0.1); color: #a855f7; transform: translateX(2px); }
+
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
+        .page-btn { padding: 10px 16px; border: 1px solid rgba(255, 255, 255, 0.06); background: #121216; cursor: pointer; border-radius: 8px; font-weight: 600; color: #a1a1aa; transition: all 0.2s; }
+        .page-btn:hover { border-color: rgba(255, 255, 255, 0.15); background: #1a1a22; color: #ffffff; }
+        .page-btn.active { background: #a855f7; color: white; border-color: #a855f7; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 6, 0.85); justify-content: center; align-items: center; z-index: 3000; padding: 20px; backdrop-filter: blur(8px); }
+        .modal-content { background: #121216; width: 100%; max-width: 750px; max-height: 85vh; border-radius: 16px; padding: 30px; overflow-y: auto; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.7); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 1.8rem; cursor: pointer; color: #52525b; transition: color 0.2s; }
+        .close-modal:hover { color: #ffffff; }
+        .modal-title { font-size: 1.5rem; margin-bottom: 6px; color: #ffffff; font-weight: 800; letter-spacing: -0.02em; }
+        .modal-subtitle { font-size: 0.85rem; color: #71717a; margin-bottom: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; }
+
+        .version-item { background: #0b0b0e; border: 1px solid rgba(255, 255, 255, 0.04); padding: 20px; border-radius: 12px; margin-bottom: 15px; display: flex; gap: 20px; position: relative;}
+        .version-img { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.04); flex-shrink: 0; }
         .version-details { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; padding-right: 120px; }
-        .version-name { font-weight: 700; font-size: 1.1rem; color: #f43f5e; }
-        .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #1e293b; border: 1px solid #475569; padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 6px; transition: all 0.2s; }
-        .btn-official-web:hover { background: #334155; border-color: #94a3b8; color: #ffffff; }
+        .version-name { font-weight: 700; font-size: 1.1rem; color: #c084fc; }
+        
+        .btn-modal-edit { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: #a1a1aa; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; cursor: pointer; margin-top: 4px; transition: all 0.2s; }
+        .btn-modal-edit:hover { background: rgba(255, 255, 255, 0.04); color: white; border-color: rgba(255, 255, 255, 0.2); }
+
+        .btn-official-web { position: absolute; right: 20px; bottom: 20px; background: #121216; border: 1px solid rgba(255, 255, 255, 0.08); padding: 8px 14px; font-size: 0.8rem; font-weight: 700; text-decoration: none; color: #cbd5e1; border-radius: 8px; transition: all 0.2s; }
+        .btn-official-web:hover { background: #1a1a22; border-color: rgba(255, 255, 255, 0.2); color: #ffffff; }
+
+        .ratings-panel { margin-top: 8px; background: #121216; border: 1px solid rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
+        .rating-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem; color: #a1a1aa; }
+        .rating-label { font-weight: 600; min-width: 120px; text-transform: uppercase; letter-spacing: 0.02em; color: #71717a; }
+        .rating-bar-container { flex-grow: 1; height: 6px; background: #1a1a22; border-radius: 3px; margin: 0 10px; overflow: hidden; position: relative; }
+        .rating-bar-fill { height: 100%; background: #a855f7; width: 0%; border-radius: 3px; transition: width 0.5s ease; }
+        .rating-value { font-weight: 700; color: #ffffff; width: 24px; text-align: right; }
+        
+        .rating-slider { width: 100%; margin: 0; cursor: pointer; accent-color: #a855f7; height: 6px; background: #1a1a22; border-radius: 3px; }
+        .rate-toggle-btn { background: transparent; border: none; color: #a855f7; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-decoration: underline; margin-top: 4px; width: fit-content; padding: 0; text-underline-offset: 2px; }
+        .rate-toggle-btn:hover { color: #c084fc; }
+        .rate-toggle-btn:disabled { color: #52525b; text-decoration: none; cursor: not-allowed; }
+        .btn-submit-vote { background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-top: 6px; width: fit-content; transition: all 0.2s; text-transform: uppercase; }
+        .btn-submit-vote:hover { background: #a855f7; color: white; }
+
+        .btn-floating-feedback {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #a855f7; 
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            z-index: 2500;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-floating-feedback:hover {
+            transform: translateY(-3px) scale(1.03);
+            background: #c084fc;
+            box-shadow: 0 15px 25px rgba(168, 85, 247, 0.4);
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 900px) { 
+            body { padding-top: 140px; }
+            .main-layout { grid-template-columns: 1fr; gap: 20px; }
+            .form-section { position: relative !important; top: 0 !important; box-shadow: none; }
+            .nav-container { flex-direction: column; gap: 12px; padding: 12px 20px; }
+        }
+
+        @media (max-width: 600px) {
+            .modal-content { padding: 20px 16px; max-height: 90vh; }
+            .modal-title { font-size: 1.25rem; }
+            .version-item { flex-direction: column !important; gap: 18px !important; align-items: center; padding: 16px; }
+            .version-item > div { flex-direction: column !important; gap: 14px !important; text-align: center; width: 100%; }
+            .version-img { width: 120px !important; height: 120px !important; margin: 0 auto; display: block; }
+            .version-details { padding-right: 0 !important; align-items: center; width: 100%; }
+            .version-details .tags-container { justify-content: center; }
+            .btn-modal-edit { margin-top: 10px !important; width: 100%; text-align: center; }
+            .btn-official-web { position: relative !important; right: 0 !important; bottom: 0 !important; display: block; width: 100%; text-align: center; margin-top: 14px; padding: 11px; }
+            .ratings-panel { max-width: 100% !important; width: 100%; }
+            body { padding-bottom: 90px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>Vocal Software & Engines</h1>
-        <p>Centralized database for synthesizer platforms and software architectures</p>
-    </header>
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-logo">EngineArchive<span>.db</span></div>
+        <ul class="nav-menu">
+            <li><button class="nav-btn active">Softwares & Engines</button></li>
+            <li><button class="nav-btn" onclick="triggerSurpriseSw()" style="color: #facc15; font-weight: 800;">🎲 Surprise Engine</button></li>
+        </ul>
+    </div>
+</nav>
 
-    <div class="main-layout">
-        <aside class="form-section">
-            <h2>Upload Engine</h2>
-            <form id="engineForm">
+<div class="container">
+
+    <div id="view-softwares" class="tab-view main-layout active">
+        <aside class="form-section" id="swFormContainer">
+            <h2 id="swFormTitle">Upload Software</h2>
+            <form id="softwareForm">
+                <input type="hidden" id="editingSwVersionId" value="">
+                
                 <div class="form-group">
-                    <label for="engId">Engine ID (e.g., SYNTH-V, VOCALOID):</label>
-                    <input type="text" id="engId" placeholder="e.g., SYNTH-V" required style="text-transform: uppercase;">
+                    <label for="swId">Engine ID Short (e.g., V4, SYNTHV, UTAU):</label>
+                    <input type="text" id="swId" placeholder="e.g., VOCALOID4" required style="text-transform: uppercase;">
                 </div>
                 <div class="form-group">
-                    <label for="engName">Edition / Version Name:</label>
-                    <input type="text" id="engName" placeholder="e.g., Synthesizer V Studio Pro" required>
+                    <label for="swName">Full Version Name:</label>
+                    <input type="text" id="swName" placeholder="e.g., Vocaloid 4 Editor Cubase Edition" required>
                 </div>
                 <div class="form-group">
-                    <label for="engImg">Logo / Boxart Image URL:</label>
-                    <input type="url" id="engImg" placeholder="https://example.com/logo.jpg" required>
+                    <label for="swImg">Software Boxart / Icon URL:</label>
+                    <input type="url" id="swImg" placeholder="https://example.com/boxart.jpg" required>
                 </div>
                 <div class="form-group">
-                    <label for="engDev">Developer / Company:</label>
-                    <input type="text" id="engDev" placeholder="e.g., Dreamtonics" required>
+                    <label for="swDeveloper">Developer Company:</label>
+                    <input type="text" id="swDeveloper" placeholder="e.g., Yamaha Corporation, Dreamtonics" required>
                 </div>
                 <div class="form-group">
-                    <label for="engLicense">License Type:</label>
-                    <select id="engLicense">
-                        <option value="Paid">Paid (Licensed)</option>
-                        <option value="Free">Free (Open Source / Gratis)</option>
-                        <option value="Freemium">Freemium (Free Basic / Paid Pro)</option>
+                    <label for="swPlatform">Supported Platforms (e.g., Windows, macOS, Linux):</label>
+                    <input type="text" id="swPlatform" placeholder="e.g., Windows, macOS" required>
+                </div>
+                <div class="form-group">
+                    <label for="swDate">Release Date:</label>
+                    <input type="date" id="swDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="swPrice">Licensing Type:</label>
+                    <select id="swPrice">
+                        <option value="Paid">Paid</option>
+                        <option value="Free">Free</option>
+                        <option value="Freemium">Freemium</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="engDate">Release Date:</label>
-                    <input type="date" id="engDate" required>
+                    <label for="swWeb">Official Website / Purchase URL:</label>
+                    <input type="url" id="swWeb" placeholder="https://..." required>
                 </div>
-                <div class="form-group">
-                    <label for="engWeb">Official Website (URL):</label>
-                    <input type="url" id="engWeb" placeholder="https://..." required>
-                </div>
-                <button type="submit" id="btnSubmit" class="btn-submit">Register Engine</button>
+                
+                <button type="submit" id="btnSubmitSw" class="btn-submit">Register Software</button>
+                <button type="button" id="btnCancelSwEdit" class="btn-cancel-edit" onclick="cancelSwEditing()">Cancel Edit</button>
             </form>
         </aside>
 
         <main class="catalog-section">
             <div class="search-container">
-                <input type="text" id="searchBar" class="search-bar" placeholder="Search by software name, developer, license...">
-                <button id="btnClearFilter" class="btn-clear-filter" onclick="clearFilter()">Clear Filter</button>
+                <input type="text" id="searchBarSw" class="search-bar" placeholder="Search by engine, full name, developer, platforms...">
+                <button id="btnClearFilterSw" class="btn-clear-filter" onclick="clearFilter('sw')">Clear Filter</button>
             </div>
-            
-            <div id="catalogGrid" class="catalog-grid"></div>
-            <div id="pagination" class="pagination"></div>
+            <div id="catalogGridSw" class="catalog-grid"></div>
+            <div id="paginationSw" class="pagination"></div>
         </main>
     </div>
+
 </div>
 
-<div id="versionsModal" class="modal">
+<div id="globalModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal()">&times;</span>
-        <h2 id="modalEngineTitle" class="modal-title">Engine Updates</h2>
-        <p id="modalEngineSubtitle" class="modal-subtitle">ID</p>
-        <div id="versionsList"></div>
+        <h2 id="modalTitle" class="modal-title">Engine History</h2>
+        <p id="modalSubtitle" class="modal-subtitle">Sub</p>
+        <div id="modalList"></div>
     </div>
 </div>
 
 <script>
+    // USANDO TUS MISMAS CREDENCIALES DE SUPABASE EXACTAS
     const SUPABASE_URL = "https://zkurztyywzcsnfhtzavp.supabase.co"; 
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprdXJ6dHl5d3pjc25maHR6YXZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NjIxNjcsImV4cCI6MjA5NTMzODE2N30.iFetb5DZhsbGmRlYaE-HiG9TF8rJaIV6s9jsM5C07jc";
     
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     const itemsPerPage = 12;
-    let currentPage = 1;
-    let localEngineData = {}; 
-    let sortedEngineIds = []; 
-    let filteredIds = [];
+    
+    let localSwData = {}, sortedSwIds = [], filteredSwIds = [], currentPageSw = 1;
+    let cachedSwRatings = {}; 
+    let isEditingSw = false; 
 
-    const form = document.getElementById('engineForm');
-    const catalogGrid = document.getElementById('catalogGrid');
-    const searchBar = document.getElementById('searchBar');
-    const btnClearFilter = document.getElementById('btnClearFilter');
-    const paginationContainer = document.getElementById('pagination');
-    const btnSubmit = document.getElementById('btnSubmit');
+    // Adaptado a la tabla de calificaciones de software
+    async function loadGlobalSwRatings() {
+        try {
+            const { data, error } = await _supabase.from('calificaciones_software').select('version_id, rendimiento, interfaz, estabilidad, caracteristicas');
+            if (error) return;
+            
+            let accum = {};
+            data.forEach(r => {
+                if(!accum[r.version_id]) accum[r.version_id] = { rend: 0, intf: 0, estab: 0, feat: 0, count: 0 };
+                accum[r.version_id].rend += r.rendimiento;
+                accum[r.version_id].intf += r.interfaz;
+                accum[r.version_id].estab += r.estabilidad;
+                accum[r.version_id].feat += r.caracteristicas;
+                accum[r.version_id].count += 1;
+            });
 
-    async function loadDataFromSupabase() {
-        const { data, error } = await _supabase
-            .from('engines')
-            .select(`
-                id, developer, license,
-                engine_versions ( name, img, release_date, official_web, created_at )
-            `);
+            cachedSwRatings = {};
+            Object.keys(accum).forEach(vId => {
+                let totalVotes = accum[vId].count;
+                let avgR = accum[vId].rend / totalVotes;
+                let avgI = accum[vId].intf / totalVotes;
+                let avgE = accum[vId].estab / totalVotes;
+                let avgF = accum[vId].feat / totalVotes;
+                let globalAvg = (avgR + avgI + avgE + avgF) / 4;
 
-        if (error) {
-            console.error("Error loading software data:", error.message);
-            return;
-        }
-
-        localEngineData = {};
-        data.forEach(eng => {
-            if(eng.engine_versions && eng.engine_versions.length > 0) {
-                const sortedVersions = eng.engine_versions.sort((a, b) => new Date(a.release_date) - new Date(b.release_date));
-                
-                localEngineData[eng.id] = {
-                    id: eng.id,
-                    developer: eng.developer,
-                    license: eng.license,
-                    versions: sortedVersions,
-                    latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].release_date)
+                cachedSwRatings[vId] = {
+                    rendimiento: avgR.toFixed(1),
+                    interfaz: avgI.toFixed(1),
+                    estabilidad: avgE.toFixed(1),
+                    caracteristicas: avgF.toFixed(1),
+                    global: globalAvg.toFixed(1),
+                    count: totalVotes
                 };
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    async function loadSoftwares() {
+        await loadGlobalSwRatings();
+        // Mapea la tabla 'softwares' y su relación con 'versiones_software'
+        const { data, error } = await _supabase.from('softwares').select(`id, precio, versiones_software ( id, name, img, developer, platform, date, web, created_at )`);
+        if (error) return console.error(error.message);
+
+        localSwData = {};
+        data.forEach(sw => {
+            if(sw.versiones_software && sw.versiones_software.length > 0) {
+                const sortedVersions = sw.versiones_software.sort((a, b) => new Date(a.date) - new Date(b.date));
+                localSwData[sw.id] = { id: sw.id, precio: sw.precio, versions: sortedVersions, latestReleaseDate: new Date(sortedVersions[sortedVersions.length - 1].date) };
             }
         });
-
-        sortedEngineIds = Object.keys(localEngineData).sort((a, b) => {
-            return localEngineData[b].latestReleaseDate - localEngineData[a].latestReleaseDate;
-        });
-
-        applyFilterAndRender();
+        sortedSwIds = Object.keys(localSwData).sort((a, b) => localSwData[b].latestReleaseDate - localSwData[a].latestReleaseDate);
+        applyFilterSw();
     }
 
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('softwareForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        btnSubmit.disabled = true;
-        btnSubmit.innerText = "Saving to cloud...";
-
-        const idInput = document.getElementById('engId').value.trim().toUpperCase();
-        const devInput = document.getElementById('engDev').value;
-        const licInput = document.getElementById('engLicense').value;
-
-        const newVersion = {
-            engine_id: idInput,
-            name: document.getElementById('engName').value,
-            img: document.getElementById('engImg').value,
-            release_date: document.getElementById('engDate').value,
-            official_web: document.getElementById('engWeb').value
-        };
-
+        const btn = document.getElementById('btnSubmitSw');
+        btn.disabled = true; btn.innerText = "Saving...";
+        const idInput = document.getElementById('swId').value.trim().toUpperCase();
+        
         try {
-            const { error: engError } = await _supabase
-                .from('engines')
-                .upsert({ id: idInput, developer: devInput, license: licInput });
+            await _supabase.from('softwares').upsert({ id: idInput, precio: document.getElementById('swPrice').value });
+            
+            const versionPayload = {
+                software_id: idInput, name: document.getElementById('swName').value, 
+                img: document.getElementById('swImg').value, developer: document.getElementById('swDeveloper').value,
+                platform: document.getElementById('swPlatform').value, date: document.getElementById('swDate').value, 
+                web: document.getElementById('swWeb').value
+            };
 
-            if (engError) throw engError;
-
-            const { error: verError } = await _supabase
-                .from('engine_versions')
-                .insert(newVersion);
-
-            if (verError) throw verError;
-
-            form.reset();
-            await loadDataFromSupabase(); 
-        } catch (err) {
-            alert("Database Error: " + err.message);
-        } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "Register Engine";
-        }
+            if (isEditingSw) {
+                versionPayload.id = parseInt(document.getElementById('editingSwVersionId').value);
+                await _supabase.from('versiones_software').upsert(versionPayload);
+                cancelSwEditing();
+            } else {
+                await _supabase.from('versiones_software').insert(versionPayload);
+                document.getElementById('softwareForm').reset();
+            }
+            await loadSoftwares();
+            alert("¡Software guardado con éxito!");
+        } catch (x) { alert(x.message); } finally { btn.disabled = false; btn.innerText = isEditingSw ? "Update Version" : "Register Software"; }
     });
 
-    function renderCatalog(page) {
-        catalogGrid.innerHTML = "";
-        
-        if (filteredIds.length === 0) {
-            catalogGrid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#64748b;'>No software platforms found.</p>";
-            paginationContainer.innerHTML = "";
-            return;
-        }
+    window.startSwEditDirect = function(swId, versionId) {
+        const sw = localSwData[swId]; const targetedVersion = sw.versions.find(v => v.id === versionId);
+        if (!targetedVersion) return;
+        isEditingSw = true;
+        const container = document.getElementById('swFormContainer'); container.classList.add('editing-mode');
+        document.getElementById('swFormTitle').innerText = `⚠️ Editing Engine: ${swId}`;
+        document.getElementById('btnSubmitSw').innerText = "Update Version";
+        document.getElementById('btnCancelSwEdit').style.display = "block";
+        document.getElementById('editingSwVersionId').value = targetedVersion.id;
+        document.getElementById('swId').value = sw.id;
+        document.getElementById('swName').value = targetedVersion.name;
+        document.getElementById('swImg').value = targetedVersion.img;
+        document.getElementById('swDeveloper').value = targetedVersion.developer;
+        document.getElementById('swPlatform').value = targetedVersion.platform;
+        document.getElementById('swDate').value = targetedVersion.date;
+        document.getElementById('swPrice').value = sw.precio;
+        document.getElementById('swWeb').value = targetedVersion.web;
+        closeModal(); container.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+    };
 
-        let start = (page - 1) * itemsPerPage;
-        let end = start + itemsPerPage;
-        let paginatedIds = filteredIds.slice(start, end);
+    window.cancelSwEditing = function() {
+        isEditingSw = false;
+        document.getElementById('swFormContainer').classList.remove('editing-mode');
+        document.getElementById('swFormTitle').innerText = "Upload Software";
+        document.getElementById('btnSubmitSw').innerText = "Register Software";
+        document.getElementById('btnCancelSwEdit').style.display = "none";
+        document.getElementById('softwareForm').reset();
+    };
 
-        paginatedIds.forEach(id => {
-            const engine = localEngineData[id];
-            const latest = engine.versions[engine.versions.length - 1]; 
-            
-            // Assign specific class depending on license value
-            let licenseClass = "tag-paid";
-            if(engine.license.toLowerCase() === "free") licenseClass = "tag-free";
-            if(engine.license.toLowerCase() === "freemium") licenseClass = "tag-freemium";
+    function renderCatalogSw(page) {
+        const grid = document.getElementById('catalogGridSw'); grid.innerHTML = "";
+        if (filteredSwIds.length === 0) { grid.innerHTML = "<p style='grid-column:1/-1; text-align:center; padding:40px; color:#52525b;'>No engines found.</p>"; return; }
 
-            const card = document.createElement('article');
-            card.className = 'card';
+        let paginated = filteredSwIds.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+        paginated.forEach(id => {
+            const sw = localSwData[id]; const latest = sw.versions[sw.versions.length - 1];
+            const ratingCache = cachedSwRatings[latest.id];
+            const ratingTextHtml = ratingCache ? `<span style="color:#facc15; font-weight:700; margin-left: 8px;">★ ${ratingCache.global}</span>` : '';
+            const priceClass = sw.precio.toLowerCase() === 'free' ? 'tag-free' : 'tag-paid';
+
+            const card = document.createElement('article'); card.className = 'card'; card.setAttribute('onclick', `openModalSw('${sw.id}')`);
             card.innerHTML = `
-                <div class="card-img-box">
-                    <img src="${latest.img}" alt="${latest.name}" onerror="this.src='https://via.placeholder.com/400x300?text=No+Logo'">
-                </div>
+                <div class="card-img-box"><img src="${latest.img}"></div>
                 <div class="card-body">
-                    <span class="software-id">${engine.id}</span>
+                    <span class="meta-id-tag">${sw.id} (${sw.versions.length})</span>
                     <h3 class="card-title">${latest.name}</h3>
-                    
-                    <div class="meta-line"><strong>Developer:</strong> ${engine.developer}</div>
-                    <div class="meta-line"><strong>Latest Update:</strong> ${latest.release_date}</div>
-                    
-                    <div class="meta-line" style="margin-top:10px;"><strong>License Type:</strong></div>
+                    <div class="meta-line" style="font-size: 0.75rem; color:#71717a; margin-bottom: 2px;">Released: ${latest.date}${ratingTextHtml}</div>
                     <div class="tags-container">
-                        <span class="tag ${licenseClass}" onclick="filterByTag('${engine.license}')">${engine.license}</span>
+                        <span class="tag tag-engine" onclick="event.stopPropagation(); filterTagSw('${latest.developer}');">${latest.developer}</span>
+                        <span class="tag ${priceClass}">${sw.precio}</span>
+                    </div>
+                </div>
+                <div class="card-action-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>`;
+            grid.appendChild(card);
+        });
+        renderPaginationUI('paginationSw', filteredSwIds.length, page, (p) => { currentPageSw = p; renderCatalogSw(p); });
+    }
+
+    function applyFilterSw() {
+        const query = document.getElementById('searchBarSw').value.toLowerCase().trim();
+        document.getElementById('btnClearFilterSw').style.display = query ? "block" : "none";
+        filteredSwIds = sortedSwIds.filter(id => {
+            const sw = localSwData[id];
+            return sw.id.toLowerCase().includes(query) || sw.precio.toLowerCase().includes(query) || sw.versions.some(v => v.name.toLowerCase().includes(query) || v.developer.toLowerCase().includes(query) || v.platform.toLowerCase().includes(query));
+        });
+        currentPageSw = 1; renderCatalogSw(currentPageSw);
+    }
+    
+    window.filterTagSw = function(t) { 
+        const searchBar = document.getElementById('searchBarSw');
+        searchBar.value = t; applyFilterSw(); searchBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    document.getElementById('searchBarSw').addEventListener('input', applyFilterSw);
+
+    function renderPaginationUI(containerId, totalItems, activePage, callback) {
+        const container = document.getElementById(containerId); container.innerHTML = "";
+        const pages = Math.ceil(totalItems / itemsPerPage); if (pages <= 1) return;
+        for (let i = 1; i <= pages; i++) {
+            const btn = document.createElement('button'); btn.className = `page-btn ${i === activePage ? 'active' : ''}`; btn.innerText = i;
+            btn.onclick = () => { callback(i); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+            container.appendChild(btn);
+        }
+    }
+
+    window.clearFilter = function(mode) {
+        if (mode === 'sw') { document.getElementById('searchBarSw').value = ""; applyFilterSw(); }
+    };
+
+    window.openModalSw = function(id) {
+        const sw = localSwData[id]; const modal = document.getElementById('globalModal');
+        document.getElementById('modalTitle').innerText = `${id} - Architecture Logs`;
+        document.getElementById('modalSubtitle').innerText = `Total sub-releases/editions: ${sw.versions.length}`;
+        const list = document.getElementById('modalList'); list.innerHTML = "";
+        
+        [...sw.versions].reverse().forEach(v => {
+            const rateData = cachedSwRatings[v.id] || { rendimiento: 0, interfaz: 0, estabilidad: 0, caracteristicas: 0, global: "0.0", count: 0 };
+            const hasVotedLocal = localStorage.getItem(`voted_sw_${v.id}`);
+            const btnText = hasVotedLocal ? "[ Already Evaluated ]" : "[ Evaluate Engine Performance ]";
+            const btnDisabledAttr = hasVotedLocal ? "disabled" : "";
+
+            list.innerHTML += `
+                <div class="version-item" style="flex-direction: column; gap: 12px;">
+                    <div style="display: flex; gap: 20px; width: 100%;">
+                        <img class="version-img" src="${v.img}">
+                        <div class="version-details">
+                            <div class="version-name">${v.name}</div>
+                            
+                            <div class="tags-container" style="margin-bottom: 4px; margin-top: 2px;">
+                                <span class="tag tag-engine" onclick="event.stopPropagation(); closeModal(); filterTagSw('${v.developer}');">${v.developer}</span>
+                                ${v.platform.split(',').map(p => `<span class="tag" onclick="event.stopPropagation(); closeModal(); filterTagSw('${p.trim()}');">${p.trim()}</span>`).join('')}
+                            </div>
+
+                            <div class="meta-line"><strong>Launch Date:</strong> ${v.date} | <strong>Licensing:</strong> ${sw.precio}</div>
+                            
+                            <button class="btn-modal-edit" style="height: 32px; width: fit-content;" onclick="startSwEditDirect('${id}', ${v.id})">✏️ Edit Specification</button>
+                        </div>
+                        <a href="${v.web}" target="_blank" class="btn-official-web">🌐 Access Workspace ↗</a>
                     </div>
                     
-                    <div class="card-actions">
-                        <button class="btn-view-more" onclick="openModal('${engine.id}')">View History (${engine.versions.length})</button>
+                    <div class="ratings-panel" id="ratePanelSw-${v.id}">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.02); padding-bottom:4px; margin-bottom:2px;">
+                            <span style="font-size:0.75rem; font-weight:700; color:#ffffff;">📊 PERFORMANCE METRICS (★ ${rateData.global})</span>
+                            <span style="font-size:0.65rem; color:#71717a;">${rateData.count} assessment(s)</span>
+                        </div>
+                        <div id="rateDisplayContainerSw-${v.id}" style="display:flex; flex-direction:column; gap:6px;">
+                            <div class="rating-row">
+                                <span class="rating-label">Rendimiento (CPU)</span>
+                                <div class="rating-bar-container"><div class="rating-bar-fill" style="width:${rateData.rendimiento * 20}%"></div></div>
+                                <span class="rating-value">${rateData.rendimiento}</span>
+                            </div>
+                            <div class="rating-row">
+                                <span class="rating-label">Diseño Interfaz</span>
+                                <div class="rating-bar-container"><div class="rating-bar-fill" style="width:${rateData.interfaz * 20}%"></div></div>
+                                <span class="rating-value">${rateData.interfaz}</span>
+                            </div>
+                            <div class="rating-row">
+                                <span class="rating-label">Estabilidad</span>
+                                <div class="rating-bar-container"><div class="rating-bar-fill" style="width:${rateData.estabilidad * 20}%"></div></div>
+                                <span class="rating-value">${rateData.estabilidad}</span>
+                            </div>
+                            <div class="rating-row">
+                                <span class="rating-label">Herramientas/Features</span>
+                                <div class="rating-bar-container"><div class="rating-bar-fill" style="width:${rateData.caracteristicas * 20}%"></div></div>
+                                <span class="rating-value">${rateData.caracteristicas}</span>
+                            </div>
+                            <button class="rate-toggle-btn" ${btnDisabledAttr} onclick="toggleSwRateMode(${v.id})">${btnText}</button>
+                        </div>
                     </div>
-                </div>
-            `;
-            catalogGrid.appendChild(card);
+                </div>`;
         });
-
-        renderPagination();
-    }
-
-    function renderPagination() {
-        paginationContainer.innerHTML = "";
-        const totalPages = Math.ceil(filteredIds.length / itemsPerPage);
-        if (totalPages <= 1) return;
-
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement('button');
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-            btn.innerText = i;
-            btn.addEventListener('click', () => {
-                currentPage = i;
-                renderCatalog(currentPage);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-            paginationContainer.appendChild(btn);
-        }
-    }
-
-    function applyFilterAndRender() {
-        const query = searchBar.value.toLowerCase().trim();
-        
-        if (query !== "") {
-            btnClearFilter.style.display = "block";
-        } else {
-            btnClearFilter.style.display = "none";
-        }
-
-        filteredIds = sortedEngineIds.filter(id => {
-            const engine = localEngineData[id];
-            const matchId = engine.id.toLowerCase().includes(query);
-            const matchDev = engine.developer.toLowerCase().includes(query);
-            const matchLicense = engine.license.toLowerCase().includes(query);
-            const matchVersions = engine.versions.some(v => v.name.toLowerCase().includes(query));
-            return matchId || matchDev || matchLicense || matchVersions;
-        });
-
-        currentPage = 1;
-        renderCatalog(currentPage);
-    }
-
-    window.filterByTag = function(tagName) {
-        searchBar.value = tagName;
-        applyFilterAndRender();
-    };
-
-    window.clearFilter = function() {
-        searchBar.value = "";
-        applyFilterAndRender();
-    };
-
-    searchBar.addEventListener('input', applyFilterAndRender);
-
-    window.openModal = function(id) {
-        const engine = localEngineData[id];
-        const modal = document.getElementById('versionsModal');
-        
-        document.getElementById('modalEngineTitle').innerText = `${id} - Version History`;
-        document.getElementById('modalEngineSubtitle').innerText = `Total deployment updates: ${engine.versions.length}`;
-        
-        const listContainer = document.getElementById('versionsList');
-        listContainer.innerHTML = "";
-
-        [...engine.versions].reverse().forEach(v => {
-            const item = document.createElement('div');
-            item.className = 'version-item';
-            item.innerHTML = `
-                <img class="version-img" src="${v.img}" onerror="this.src='https://via.placeholder.com/150?text=No+Logo'">
-                <div class="version-details">
-                    <div class="version-name">${v.name}</div>
-                    <div class="meta-line"><strong>Developer:</strong> ${engine.developer}</div>
-                    <div class="meta-line"><strong>Release Date:</strong> ${v.release_date} | <strong>License:</strong> ${engine.license}</div>
-                </div>
-                <a href="${v.official_web}" target="_blank" class="btn-official-web">Visit Site ↗</a>
-            `;
-            listContainer.appendChild(item);
-        });
-
         modal.style.display = "flex";
     };
 
-    window.closeModal = function() {
-        document.getElementById('versionsModal').style.display = "none";
+    window.toggleSwRateMode = function(versionId) {
+        const container = document.getElementById(`rateDisplayContainerSw-${versionId}`);
+        container.innerHTML = `
+            <div class="rating-row">
+                <span class="rating-label">Rendimiento</span>
+                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sl-r-${versionId}" oninput="document.getElementById('vl-r-${versionId}').innerText=this.value">
+                <span class="rating-value" id="vl-r-${versionId}">5</span>
+            </div>
+            <div class="rating-row">
+                <span class="rating-label">Interfaz</span>
+                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sl-i-${versionId}" oninput="document.getElementById('vl-i-${versionId}').innerText=this.value">
+                <span class="rating-value" id="vl-i-${versionId}">5</span>
+            </div>
+            <div class="rating-row">
+                <span class="rating-label">Estabilidad</span>
+                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sl-e-${versionId}" oninput="document.getElementById('vl-e-${versionId}').innerText=this.value">
+                <span class="rating-value" id="vl-e-${versionId}">5</span>
+            </div>
+            <div class="rating-row">
+                <span class="rating-label">Herramientas</span>
+                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sl-f-${versionId}" oninput="document.getElementById('vl-f-${versionId}').innerText=this.value">
+                <span class="rating-value" id="vl-f-${versionId}">5</span>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="btn-submit-vote" id="btnVoteSw-${versionId}" onclick="submitSwRating(${versionId})">[ Submit Evaluation ]</button>
+                <button class="rate-toggle-btn" style="margin-top:6px;" onclick="reloadSwModalAfterVote()">[ Cancel ]</button>
+            </div>`;
     };
 
-    loadDataFromSupabase();
+    window.submitSwRating = async function(versionId) {
+        const actionBtn = document.getElementById(`btnVoteSw-${versionId}`);
+        actionBtn.disabled = true; actionBtn.innerText = "[ Securing Space... ]";
+
+        let clientIp = "0.0.0.0";
+        try {
+            const res = await fetch('https://api.ipify.org?format=json');
+            const data = await res.json();
+            if(data && data.ip) clientIp = data.ip;
+        } catch(ipErr) { console.warn("Fallo IP."); }
+
+        const r = parseInt(document.getElementById(`sl-r-${versionId}`).value);
+        const i = parseInt(document.getElementById(`sl-i-${versionId}`).value);
+        const e = parseInt(document.getElementById(`sl-e-${versionId}`).value);
+        const f = parseInt(document.getElementById(`sl-f-${versionId}`).value);
+
+        const { error } = await _supabase.from('calificaciones_software').insert({
+            version_id: versionId, rendimiento: r, interfaz: i, estabilidad: e, caracteristicas: f, user_ip: clientIp
+        });
+
+        if (error) {
+            actionBtn.disabled = false; actionBtn.innerText = "[ Submit Evaluation ]";
+            if(error.code === "23505") {
+                alert("🔒 IP Protegida: Ya has registrado una evaluación para esta edición el día de hoy.");
+                localStorage.setItem(`voted_sw_${versionId}`, "true"); reloadSwModalAfterVote();
+            } else { alert("Error: " + error.message); }
+        } else {
+            localStorage.setItem(`voted_sw_${versionId}`, "true");
+            alert("¡Métricas de software añadidas con éxito!");
+            reloadSwModalAfterVote();
+        }
+    };
+
+    window.closeModal = function() { document.getElementById('globalModal').style.display = "none"; };
+
+    window.triggerSurpriseSw = function() {
+        if (!sortedSwIds || sortedSwIds.length === 0) return;
+        const randomSwId = sortedSwIds[Math.floor(Math.random() * sortedSwIds.length)];
+        openModalSw(randomSwId);
+    };
+
+    window.reloadSwModalAfterVote = async function() {
+        const titleText = document.getElementById('modalTitle').innerText;
+        const swId = titleText.split(' - ')[0];
+        await loadSoftwares();
+        if(swId) openModalSw(swId);
+    };
+
+    loadSoftwares();
 </script>
+
+<a href="https://forms.gle/abZytzv448kRGf8r7" target="_blank" class="btn-floating-feedback">📢 Suggest or Report Error</a>
 
 </body>
 </html>
