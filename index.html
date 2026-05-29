@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voicebank Central Archive</title>
-    <!-- Supabase CDN -->
+    <title>Voicebank & Engine Central Archive</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
@@ -126,6 +125,13 @@
         .tag:hover { background: #0ea5e9; color: white; border-color: #0ea5e9; }
         .tag-software { background: rgba(14, 165, 233, 0.06); border-color: rgba(14, 165, 233, 0.15); color: #38bdf8; }
         .tag-software:hover { background: #0ea5e9; color: white; }
+
+        .tag-free { background: rgba(34, 197, 94, 0.06); border-color: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .tag-free:hover { background: #22c55e; color: white; }
+        .tag-paid { background: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .tag-paid:hover { background: #ef4444; color: white; }
+        .tag-freemium { background: rgba(234, 179, 8, 0.06); border-color: rgba(234, 179, 8, 0.15); color: #facc15; }
+        .tag-freemium:hover { background: #eab308; color: white; }
         
         .card-action-icon { width: 32px; height: 32px; border-radius: 50%; background: transparent; display: flex; align-items: center; justify-content: center; color: #43434a; flex-shrink: 0; transition: all 0.2s ease; }
         .card:hover .card-action-icon { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; transform: translateX(2px); }
@@ -170,10 +176,9 @@
         .rate-toggle-btn { background: transparent; border: none; color: #0ea5e9; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-decoration: underline; margin-top: 4px; width: fit-content; padding: 0; text-underline-offset: 2px; }
         .rate-toggle-btn:hover { color: #38bdf8; }
         .rate-toggle-btn:disabled { color: #52525b; text-decoration: none; cursor: not-allowed; }
-        .btn-submit-vote { background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); color: #38bdf8; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-top: 6px; width: fit-content; transition: all 0.2s; text-transform: uppercase; }
+        .btn-submit-vote { background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.3); color: #38bdf8; font-size: 0.7; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-top: 6px; width: fit-content; transition: all 0.2s; text-transform: uppercase; }
         .btn-submit-vote:hover { background: #0ea5e9; color: white; }
 
-        /* Floating Feedback Button */
         .btn-floating-feedback {
             position: fixed;
             bottom: 25px;
@@ -245,7 +250,6 @@
 
 <div class="container">
 
-    <!-- Voicebanks Layout View -->
     <div id="view-voicebanks" class="tab-view main-layout active">
         <aside class="form-section" id="vbFormContainer">
             <h2 id="vbFormTitle">Upload Voicebank</h2>
@@ -296,6 +300,7 @@
                     <label for="vbWeb">Official Website (URL):</label>
                     <input type="url" id="vbWeb" placeholder="https://..." required>
                 </div>
+                
                 <button type="submit" id="btnSubmitVb" class="btn-submit">Register Version</button>
                 <button type="button" id="btnCancelVbEdit" class="btn-cancel-edit" onclick="cancelVbEditing()">Cancel Edit</button>
             </form>
@@ -313,493 +318,11 @@
 
 </div>
 
-<!-- Global Detailed View Modal -->
 <div id="globalModal" class="modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal()">&times;</span>
-        <h2 id="modalTitle" class="modal-title">Character Name</h2>
-        <div id="modalSubtitle" class="modal-subtitle">Details Overview</div>
-        <div id="modalVersionsContainer"></div>
+        <h2 id="modalTitle" class="modal-title">Log History</h2>
+        <p id="modalSubtitle" class="modal-subtitle">Sub</p>
+        <div id="modalList"></div>
     </div>
 </div>
-
-<!-- Floating Google Forms Feedback Redirect Button -->
-<a href="https://forms.google.com" target="_blank" class="btn-floating-feedback" title="Report an issue or suggest a feature">
-    <span>💡</span> Submit Feedback
-</a>
-
-<script>
-    // --- SUPABASE ARCHITECTURE CONFIGURATION ---
-    const SUPABASE_URL = "YOUR_SUPABASE_URL"; 
-    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"; 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // Global Audio context engine
-    const globalAudio = new Audio();
-    
-    // Core state management architecture
-    let voicebanksData = [];
-    let sortedVbIds = [];
-    let currentVbPage = 1;
-    const itemsPerPage = 12;
-    let activeVbFilter = "";
-
-    // Target UI element references
-    const catalogGridVb = document.getElementById('catalogGridVb');
-    const searchBarVb = document.getElementById('searchBarVb');
-    const btnClearFilterVb = document.getElementById('btnClearFilterVb');
-    const paginationVb = document.getElementById('paginationVb');
-    const voicebankForm = document.getElementById('voicebankForm');
-
-    // --- LIFE CYCLE INITIALIZATION ---
-    document.addEventListener("DOMContentLoaded", () => {
-        loadVoicebanks();
-        setupSearchEventListeners();
-        setupFormSubmissions();
-    });
-
-    // --- DATA CAPTURE LAYER ---
-    async function loadVoicebanks() {
-        try {
-            // Se leen los voicebanks y sus votaciones agregadas desde Supabase
-            const { data, error } = await supabase.from('voicebanks').select('*').order('character_id', { ascending: true });
-            if (error) throw error;
-            
-            voicebanksData = data || [];
-            processVoicebanksData();
-            renderVbCatalog();
-        } catch (err) {
-            console.error("Critical database connection error (Voicebanks):", err.message);
-        }
-    }
-
-    function processVoicebanksData() {
-        const characterGroups = {};
-        voicebanksData.forEach(vb => {
-            if (!characterGroups[vb.character_id]) characterGroups[vb.character_id] = [];
-            characterGroups[vb.character_id].push(vb);
-        });
-        sortedVbIds = Object.keys(characterGroups).sort();
-    }
-
-    // --- SEARCH & DATA FILTERING LAYER ---
-    function setupSearchEventListeners() {
-        searchBarVb.addEventListener('input', (e) => {
-            activeVbFilter = e.target.value.toLowerCase().trim();
-            currentVbPage = 1;
-            btnClearFilterVb.style.display = activeVbFilter ? "block" : "none";
-            renderVbCatalog();
-        });
-    }
-
-    window.clearFilter = function(type) {
-        if (type === 'vb') {
-            searchBarVb.value = "";
-            activeVbFilter = "";
-            btnClearFilterVb.style.display = "none";
-            renderVbCatalog();
-        }
-    };
-
-    window.filterByTag = function(tagValue) {
-        searchBarVb.value = tagValue;
-        activeVbFilter = tagValue.toLowerCase().trim();
-        currentVbPage = 1;
-        btnClearFilterVb.style.display = "block";
-        renderVbCatalog();
-    };
-
-    // --- CATALOG PRESENTATION GRAPHICS LAYER ---
-    function renderVbCatalog() {
-        catalogGridVb.innerHTML = "";
-        
-        let filteredIds = sortedVbIds.filter(charId => {
-            const group = voicebanksData.filter(v => v.character_id === charId);
-            if (charId.toLowerCase().includes(activeVbFilter)) return true;
-            
-            return group.some(vb => 
-                vb.version_name.toLowerCase().includes(activeVbFilter) ||
-                vb.languages.toLowerCase().includes(activeVbFilter) ||
-                vb.software_engine.toLowerCase().includes(activeVbFilter) ||
-                (vb.optimal_genres && vb.optimal_genres.toLowerCase().includes(activeVbFilter))
-            );
-        });
-
-        if (filteredIds.length === 0) {
-            catalogGridVb.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #52525b; padding: 40px; font-weight: 600;">No character voicebanks match your current query criteria.</div>`;
-            paginationVb.innerHTML = "";
-            return;
-        }
-
-        const totalPages = Math.ceil(filteredIds.length / itemsPerPage);
-        if (currentVbPage > totalPages) currentVbPage = totalPages || 1;
-        
-        const startIdx = (currentVbPage - 1) * itemsPerPage;
-        const pageIds = filteredIds.slice(startIdx, startIdx + itemsPerPage);
-
-        pageIds.forEach(charId => {
-            const group = voicebanksData.filter(v => v.character_id === charId);
-            const primaryVb = group[0]; 
-            
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.onclick = () => openModalVb(charId);
-
-            // Extraer idiomas y motores únicos para los tags de la tarjeta
-            const languagesSet = new Set();
-            const enginesSet = new Set();
-            group.forEach(v => {
-                v.languages.split(',').forEach(l => languagesSet.add(l.trim()));
-                v.software_engine.split(',').forEach(e => enginesSet.add(e.trim()));
-            });
-            
-            const languagesArr = Array.from(languagesSet).slice(0, 2);
-            const enginesArr = Array.from(enginesSet).slice(0, 1);
-
-            let audioPlaybackMarkup = "";
-            if (primaryVb.demo_url) {
-                audioPlaybackMarkup = `
-                    <div class="audio-player-box" onclick="event.stopPropagation();">
-                        <button class="play-btn" onclick="playAudio('${primaryVb.demo_url}', this)">▶</button>
-                    </div>
-                `;
-            }
-
-            card.innerHTML = `
-                <div class="card-img-box">
-                    <img src="${primaryVb.image_url || 'https://via.placeholder.com/150'}" alt="${charId}">
-                    ${audioPlaybackMarkup}
-                </div>
-                <div class="card-body">
-                    <div class="meta-id-tag">${charId}</div>
-                    <div class="card-title">${charId} Overview</div>
-                    <div style="font-size: 0.75rem; color: #71717a; font-weight: 600;">${group.length} Version(s) registered</div>
-                    <div class="tags-container" onclick="event.stopPropagation();">
-                        ${enginesArr.map(eng => `<span class="tag tag-software" onclick="filterByTag('${eng}')">${eng}</span>`).join('')}
-                        ${languagesArr.map(lang => `<span class="tag" onclick="filterByTag('${lang}')">${lang}</span>`).join('')}
-                    </div>
-                </div>
-                <div class="card-action-icon">➔</div>
-            `;
-            catalogGridVb.appendChild(card);
-        });
-
-        renderPaginationControls(paginationVb, totalPages, currentVbPage, (newPage) => {
-            currentVbPage = newPage;
-            renderVbCatalog();
-        });
-    }
-
-    function renderPaginationControls(container, totalPages, currentPage, onPageChange) {
-        container.innerHTML = "";
-        if (totalPages <= 1) return;
-
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement('button');
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-            btn.innerText = i;
-            btn.onclick = () => onPageChange(i);
-            container.appendChild(btn);
-        }
-    }
-
-    // --- DETAILED VIEW MODAL ARCHITECTURE LAYER ---
-    window.openModalVb = function(charId) {
-        const group = voicebanksData.filter(v => v.character_id === charId);
-        if (group.length === 0) return;
-
-        const modal = document.getElementById('globalModal');
-        const title = document.getElementById('modalTitle');
-        const subtitle = document.getElementById('modalSubtitle');
-        const container = document.getElementById('modalVersionsContainer');
-
-        title.innerText = `${charId} - Virtual Vocal Profile`;
-        subtitle.innerText = `Displaying information records for ${group.length} verified system version release(s).`;
-        container.innerHTML = "";
-
-        group.forEach(vb => {
-            const item = document.createElement('div');
-            item.className = 'version-item';
-
-            // Análisis de metadata del voicebank
-            const langTags = vb.languages.split(',').map(l => `<span class="tag" onclick="closeModal(); filterByTag('${l.trim()}')">${l.trim()}</span>`).join('');
-            const engineTags = vb.software_engine.split(',').map(e => `<span class="tag tag-software" onclick="closeModal(); filterByTag('${e.trim()}')">${e.trim()}</span>`).join('');
-            const genreTags = vb.optimal_genres ? vb.optimal_genres.split(',').map(g => `<span class="tag" onclick="closeModal(); filterByTag('${g.trim()}')">${g.trim()}</span>`).join('') : '';
-
-            // Renderizado del reproductor o aviso de falta de demo
-            let audioSnippet = `<span style="font-size:0.75rem; color:#52525b; font-weight:600; font-style:italic;">No direct audio demo configuration file available.</span>`;
-            if (vb.demo_url) {
-                audioSnippet = `<audio controls src="${vb.demo_url}" style="width: 100%; max-width: 320px; height: 32px; border-radius: 6px;"></audio>`;
-            }
-
-            // Módulo de calificaciones técnicas del voicebank
-            const qualityAvg = vb.rating_quality_count > 0 ? (vb.rating_quality_sum / vb.rating_quality_count).toFixed(1) : "0.0";
-            const clarityAvg = vb.rating_clarity_count > 0 ? (vb.rating_clarity_sum / vb.rating_clarity_count).toFixed(1) : "0.0";
-            const usabilityAvg = vb.rating_usability_count > 0 ? (vb.rating_usability_sum / vb.rating_usability_count).toFixed(1) : "0.0";
-
-            item.innerHTML = `
-                <img src="${vb.image_url || 'https://via.placeholder.com/150'}" class="version-img" alt="${vb.version_name}">
-                <div class="version-details">
-                    <div class="version-name">${vb.version_name}</div>
-                    <div style="font-size: 0.8rem; color: #a1a1aa;"><strong style="color:#71717a;">Gender Profile:</strong> ${vb.gender || 'Not specified'} | <strong style="color:#71717a;">Released:</strong> ${vb.release_date || 'Unknown'}</div>
-                    <div class="tags-container" style="margin-bottom:4px;">${engineTags}${langTags}${genreTags}</div>
-                    ${audioSnippet}
-                    
-                    <!-- Panel de Evaluación Multi-Criterio -->
-                    <div class="ratings-panel">
-                        <div class="rating-row">
-                            <span class="rating-label">Recording Quality:</span>
-                            <div class="rating-bar-container"><div class="rating-bar-fill" style="width: ${parseFloat(qualityAvg)*20}%"></div></div>
-                            <span class="rating-value">${qualityAvg}</span>
-                        </div>
-                        <div class="rating-row">
-                            <span class="rating-label">Linguistic Clarity:</span>
-                            <div class="rating-bar-container"><div class="rating-bar-fill" style="width: ${parseFloat(clarityAvg)*20}%"></div></div>
-                            <span class="rating-value">${clarityAvg}</span>
-                        </div>
-                        <div class="rating-row">
-                            <span class="rating-label">Ease of Use:</span>
-                            <div class="rating-bar-container"><div class="rating-bar-fill" style="width: ${parseFloat(usabilityAvg)*20}%"></div></div>
-                            <span class="rating-value">${usabilityAvg}</span>
-                        </div>
-                        
-                        <div id="vote-form-${vb.id}" style="display:none; margin-top:10px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
-                            <div style="margin-bottom:6px;">
-                                <label style="display:block; font-size:0.7rem; color:#71717a; font-weight:700;">RECORDING QUALITY (1-5):</label>
-                                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sld-quality-${vb.id}">
-                            </div>
-                            <div style="margin-bottom:6px;">
-                                <label style="display:block; font-size:0.7rem; color:#71717a; font-weight:700;">LINGUISTIC CLARITY (1-5):</label>
-                                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sld-clarity-${vb.id}">
-                            </div>
-                            <div style="margin-bottom:6px;">
-                                <label style="display:block; font-size:0.7rem; color:#71717a; font-weight:700;">EASE OF USE (1-5):</label>
-                                <input type="range" min="1" max="5" value="5" class="rating-slider" id="sld-usability-${vb.id}">
-                            </div>
-                            <button class="btn-submit-vote" onclick="submitVbVote(${vb.id})">Cast Ratings</button>
-                        </div>
-                        <button class="rate-toggle-btn" id="btn-toggle-vote-${vb.id}" onclick="document.getElementById('vote-form-${vb.id}').style.display='block'; this.style.display='none';">⭐ Evaluate this Version</button>
-                    </div>
-
-                    <div>
-                        <button class="btn-modal-edit" onclick="closeModal(); enableVbEditingMode(${vb.id});">⚙ Edit Technical Record</button>
-                    </div>
-                </div>
-                <a href="${vb.official_website_url}" target="_blank" class="btn-official-web">Official Distribution ↗</a>
-            `;
-            container.appendChild(item);
-        });
-
-        modal.style.display = "flex";
-    };
-
-    // --- ANALYTICS & RATING MANAGEMENT LAYER (IP TRACKED) ---
-    window.submitVbVote = async function(vbId) {
-        // Deshabilitar botón para mitigar spam inmediato
-        const btnVote = document.querySelector(`#vote-form-${vbId} .btn-submit-vote`);
-        if(btnVote) btnVote.disabled = true;
-
-        const qVal = parseInt(document.getElementById(`sld-quality-${vbId}`).value) || 5;
-        const cVal = parseInt(document.getElementById(`sld-clarity-${vbId}`).value) || 5;
-        const uVal = parseInt(document.getElementById(`sld-usability-${vbId}`).value) || 5;
-
-        try {
-            // Protección de integridad mediante rastreo IP simulado de lado del cliente
-            const ipResponse = await fetch('https://api.ipify.org?format=json').catch(() => null);
-            let userIp = "0.0.0.0";
-            if (ipResponse) {
-                const ipData = await ipResponse.json();
-                userIp = ipData.ip;
-            }
-
-            // Comprobación de duplicados de IP localizados en base de datos
-            const { data: existingVote, error: checkError } = await supabase
-                .from('voicebank_ratings_log')
-                .select('id')
-                .eq('voicebank_id', vbId)
-                .eq('user_ip', userIp)
-                .maybeSingle();
-
-            if (checkError) throw checkError;
-
-            if (existingVote) {
-                alert("Security Filter: Your network IP has already recorded evaluation metrics for this specific engine architecture.");
-                if(btnVote) btnVote.disabled = false;
-                return;
-            }
-
-            // Transacción: Registro del log de IP
-            const { error: logError } = await supabase
-                .from('voicebank_ratings_log')
-                .insert([{ voicebank_id: vbId, user_ip: userIp }]);
-            
-            if (logError) throw logError;
-
-            // Transacción: Agregación incremental a la tabla maestra
-            const targetVb = voicebanksData.find(v => v.id === vbId);
-            if (!targetVb) return;
-
-            const { error: updateError } = await supabase
-                .from('voicebanks')
-                .update({
-                    rating_quality_sum: (targetVb.rating_quality_sum || 0) + qVal,
-                    rating_quality_count: (targetVb.rating_quality_count || 0) + 1,
-                    rating_clarity_sum: (targetVb.rating_clarity_sum || 0) + cVal,
-                    rating_clarity_count: (targetVb.rating_clarity_count || 0) + 1,
-                    rating_usability_sum: (targetVb.rating_usability_sum || 0) + uVal,
-                    rating_usability_count: (targetVb.rating_usability_count || 0) + 1
-                })
-                .eq('id', vbId);
-
-            if (updateError) throw updateError;
-
-            alert("Validation Success: Evaluation analytics successfully merged into international matrix.");
-            await reloadModalAfterVote();
-
-        } catch(err) {
-            console.error("Critical Vote Architecture Error:", err.message);
-            if(btnVote) btnVote.disabled = false;
-        }
-    };
-
-    // --- FORM DATA PROCESSING & CREATION LAYER ---
-    function setupFormSubmissions() {
-        voicebankForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btnSubmit = document.getElementById('btnSubmitVb');
-            btnSubmit.disabled = true;
-
-            const editingId = document.getElementById('editingVersionId').value;
-            
-            const vbPayload = {
-                character_id: document.getElementById('vbId').value.toUpperCase().trim(),
-                version_name: document.getElementById('vbName').value.trim(),
-                demo_url: document.getElementById('vbDemo').value.trim() || null,
-                image_url: document.getElementById('vbImg').value.trim(),
-                languages: document.getElementById('vbLang').value.trim(),
-                software_engine: document.getElementById('vbSoftware').value.trim(),
-                optimal_genres: document.getElementById('vbGenres').value.trim() || null,
-                release_date: document.getElementById('vbDate').value,
-                gender: document.getElementById('vbGender').value,
-                official_website_url: document.getElementById('vbWeb').value.trim()
-            };
-
-            try {
-                if (editingId) {
-                    // Acción de actualización
-                    const { error } = await supabase.from('voicebanks').update(vbPayload).eq('id', editingId);
-                    if (error) throw error;
-                    alert("Technical update committed successfully.");
-                } else {
-                    // Acción de inserción (Inicializando las métricas de votación en 0)
-                    vbPayload.rating_quality_sum = 0;
-                    vbPayload.rating_quality_count = 0;
-                    vbPayload.rating_clarity_sum = 0;
-                    vbPayload.rating_clarity_count = 0;
-                    vbPayload.rating_usability_sum = 0;
-                    vbPayload.rating_usability_count = 0;
-
-                    const { error } = await supabase.from('voicebanks').insert([vbPayload]);
-                    if (error) throw error;
-                    alert("New character system version successfully archived.");
-                }
-
-                cancelVbEditing();
-                await loadVoicebanks();
-            } catch (err) {
-                alert("Database write error: " + err.message);
-            } finally {
-                btnSubmit.disabled = false;
-            }
-        });
-    }
-
-    // --- SYSTEM EDITING STATE INTERFACE MODIFIERS ---
-    window.enableVbEditingMode = function(id) {
-        const vb = voicebanksData.find(v => v.id === id);
-        if (!vb) return;
-
-        document.getElementById('view-voicebanks').scrollIntoView({ behavior: 'smooth' });
-
-        const formContainer = document.getElementById('vbFormContainer');
-        formContainer.classList.add('editing-mode');
-
-        document.getElementById('vbFormTitle').innerText = `Editing: ${vb.version_name}`;
-        document.getElementById('editingVersionId').value = vb.id;
-        
-        document.getElementById('vbId').value = vb.character_id;
-        document.getElementById('vbName').value = vb.version_name;
-        document.getElementById('vbDemo').value = vb.demo_url || "";
-        document.getElementById('vbImg').value = vb.image_url;
-        document.getElementById('vbLang').value = vb.languages;
-        document.getElementById('vbSoftware').value = vb.software_engine;
-        document.getElementById('vbGenres').value = vb.optimal_genres || "";
-        document.getElementById('vbDate').value = vb.release_date || "";
-        document.getElementById('vbGender').value = vb.gender;
-        document.getElementById('vbWeb').value = vb.official_website_url;
-
-        document.getElementById('btnSubmitVb').innerText = "Commit Changes";
-        document.getElementById('btnCancelVbEdit').style.display = "block";
-    };
-
-    window.cancelVbEditing = function() {
-        const formContainer = document.getElementById('vbFormContainer');
-        formContainer.classList.remove('editing-mode');
-
-        document.getElementById('vbFormTitle').innerText = "Upload Voicebank";
-        document.getElementById('editingVersionId').value = "";
-        voicebankForm.reset();
-
-        document.getElementById('btnSubmitVb').innerText = "Register Version";
-        document.getElementById('btnCancelVbEdit').style.display = "none";
-    };
-</script>
-
-<!-- Global Script Overrides implementados en la cabecera para compatibilidad -->
-<script>
-    window.switchTab = function(tabName, btn) {
-        document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        
-        const targetView = document.getElementById(`view-${tabName}`);
-        if(targetView) targetView.classList.add('active');
-        if(btn) btn.classList.add('active');
-        globalAudio.pause();
-    };
-
-    window.closeModal = function() { 
-        document.getElementById('globalModal').style.display = "none"; 
-        globalAudio.pause(); 
-    };
-
-    window.playAudio = function(url, button) {
-        if (globalAudio.src === url && !globalAudio.paused) { 
-            globalAudio.pause(); 
-            button.innerHTML = button.classList.contains('play-btn') ? "▶" : "▶ Play Demo"; 
-        } else {
-            document.querySelectorAll('.play-btn, .modal-play-btn').forEach(b => b.innerHTML = b.classList.contains('play-btn') ? "▶" : "▶ Play Demo");
-            globalAudio.src = url; 
-            globalAudio.play(); 
-            button.innerHTML = "⏸";
-        }
-    };
-    
-    window.triggerSurpriseVb = function() {
-        globalAudio.pause();
-        if (!sortedVbIds || sortedVbIds.length === 0) return;
-        const vbTabBtn = document.querySelector(".nav-menu .nav-btn[onclick*='voicebanks']");
-        if (vbTabBtn) switchTab('voicebanks', vbTabBtn);
-        const randomCharacterId = sortedVbIds[Math.floor(Math.random() * sortedVbIds.length)];
-        openModalVb(randomCharacterId);
-    };
-
-    window.reloadModalAfterVote = async function() {
-        const titleText = document.getElementById('modalTitle').innerText;
-        const charId = titleText.split(' - ')[0];
-        await loadVoicebanks();
-        if (charId) openModalVb(charId);
-    };
-</script>
-
-</body>
-</html>
